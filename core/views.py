@@ -16,6 +16,11 @@ from .serializers import UserSerializer
 from .models import User
 
 # Create your views here.
+
+
+def learn_more(request):
+    return render(request, "core/learn_more.html")
+
 def home(request):
     """
     View function for the home page of the site.
@@ -23,6 +28,11 @@ def home(request):
     return render(request, 'core/home.html')
 
 # Web views (HTML templates)
+def terms_of_service(request):
+    return render(request, 'core/terms_of_service.html')
+
+def privacy_policy(request):
+    return render(request, 'core/privacy_policy.html')
 def register_view(request):
     """
     Web view function for user registration.
