@@ -75,8 +75,8 @@
                         class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded" required>
                 </div>
                 <div class="ml-3 text-sm">
-                    <label for="terms" class="text-gray-600">I agree to the <a href="#"
-                            class="text-indigo-600 hover:underline">Terms of Service</a> and <a href="#"
+                    <label for="terms" class="text-gray-600">I agree to the <a href="{% url 'core:terms_of_service' %}"
+                            class="text-indigo-600 hover:underline">Terms of Service</a> and <a href="{% url 'core:privacy_policy' %}"
                             class="text-indigo-600 hover:underline">Privacy Policy</a></label>
                     {% if form.terms.errors %}
                     <p class="text-red-500 text-xs mt-1">{{ form.terms.errors.0 }}</p>

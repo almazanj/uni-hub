@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}Learn More - Uni Hub{% endblock %}
+
+{% block content %}
+<main class="container mx-auto px-6 py-12 max-w-5xl">
+    
+    <!-- Hero Section -->
+    <section class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-center rounded-xl p-10 shadow-lg">
+        <h1 class="text-4xl font-bold">Welcome to Uni Hub</h1>
+        <p class="text-lg mt-3 opacity-90">Your gateway to a connected and vibrant campus community.</p>
+        <a href="{% url 'core:register' %}" 
+           class="mt-6 inline-block bg-white text-indigo-700 font-semibold px-6 py-3 rounded-full hover:bg-opacity-90 transition">
+           Get Started
+        </a>
+    </section>
+
+    <!-- Features Section -->
+    <section class="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8">
+        
+        <!-- Registration -->
+        <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200 flex items-start space-x-4">
+            <div class="bg-indigo-100 p-3 rounded-full">
+                <svg class="h-8 w-8 text-indigo-600" fill="none" stroke="currentColor" stroke-width="2" 
+                     viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 3a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2H5z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 10v10a2 2 0 002 2h14a2 2 0 002-2V10" />
+                </svg>
+            </div>
+            <div>
+                <h3 class="text-xl font-semibold text-gray-800">Easy Registration</h3>
+                <p class="text-gray-600 mt-2">Sign up with your academic email, set your preferences, and start exploring.</p>
+            </div>
+        </div>
+
+        <!-- Profile -->
+        <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200 flex items-start space-x-4">
+            <div class="bg-purple-100 p-3 rounded-full">
+                <svg class="h-8 w-8 text-purple-600" fill="none" stroke="currentColor" stroke-width="2" 
+                     viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M16 14V18M8 14V18M12 14V18M3 9H21" />
+                </svg>
+            </div>
+            <div>
+                <h3 class="text-xl font-semibold text-gray-800">Personalized Profiles</h3>
+                <p class="text-gray-600 mt-2">Showcase achievements, interests, and campus involvement.</p>
+            </div>
+        </div>
+
+        <!-- Communities -->
+        <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200 flex items-start space-x-4">
+            <div class="bg-green-100 p-3 rounded-full">
+                <svg class="h-8 w-8 text-green-600" fill="none" stroke="currentColor" stroke-width="2" 
+                     viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+            </div>
+            <div>
+                <h3 class="text-xl font-semibold text-gray-800">Engaging Communities</h3>
+                <p class="text-gray-600 mt-2">Join student groups, academic forums, and special-interest clubs.</p>
+            </div>
+        </div>
+
+        <!-- Events -->
+        <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200 flex items-start space-x-4">
+            <div class="bg-red-100 p-3 rounded-full">
+                <svg class="h-8 w-8 text-red-600" fill="none" stroke="currentColor" stroke-width="2" 
+                     viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+            </div>
+            <div>
+                <h3 class="text-xl font-semibold text-gray-800">Campus Events</h3>
+                <p class="text-gray-600 mt-2">Discover upcoming events, virtual meetups, and academic workshops.</p>
+            </div>
+        </div>
+
+        <!-- Secure & Private -->
+        <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200 flex items-start space-x-4">
+            <div class="bg-gray-100 p-3 rounded-full">
+                <svg class="h-8 w-8 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" 
+                     viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 11c1.38 0 2.5-1.12 2.5-2.5S13.38 6 12 6s-2.5 1.12-2.5 2.5S10.62 11 12 11zm-4 9h8a2 2 0 002-2v-2a4 4 0 00-8 0v2a2 2 0 002 2z" />
+                </svg>
+            </div>
+            <div>
+                <h3 class="text-xl font-semibold text-gray-800">Secure & Private</h3>
+                <p class="text-gray-600 mt-2">Role-based permissions, content moderation, and strong security measures.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call to Action -->
+    <section class="text-center mt-12">
+        <h3 class="text-2xl font-semibold text-gray-800">Join Uni Hub Today!</h3>
+        <p class="text-gray-700 mt-3">Sign up now and become part of a thriving university community.</p>
+        <a href="{% url 'core:register' %}" 
+           class="mt-6 inline-block bg-indigo-600 text-white font-semibold px-6 py-3 rounded-lg hover:bg-indigo-700 transition">
+           Sign Up Now
+        </a>
+    </section>
+
+</main>
+{% endblock %}

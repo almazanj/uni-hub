@@ -17,6 +17,10 @@ web_patterns = [
     path('profile/edit/', views.edit_profile_view, name='edit_profile'),
     path('profile/change-password/', views.change_password_view, name='change_password'),
     path('dashboard/', views.dashboard, name='dashboard'),
+    path("learn-more/", views.learn_more, name="learn_more"),
+    path('terms-of-service/', views.terms_of_service, name='terms_of_service'),
+    path('privacy-policy/', views.privacy_policy, name='privacy_policy'),
+
 ]
 
 urlpatterns = [
