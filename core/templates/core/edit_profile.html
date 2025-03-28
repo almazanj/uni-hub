@@ -19,6 +19,15 @@
                 <input type="text" name="interests" value="{{ profile.interests }}" class="w-full px-4 py-2 border rounded-md">
             </div>
 
+            <div class="mb-4">
+                <label class="block text-gray-700 font-medium">Profile Privacy</label>
+                <select name="privacy" class="w-full px-4 py-2 border rounded-md">
+                    <option value="public" {% if profile.privacy == "public" %}selected{% endif %}>Public</option>
+                    <option value="private" {% if profile.privacy == "private" %}selected{% endif %}>Private</option>
+                    <option value="friends" {% if profile.privacy == "friends" %}selected{% endif %}>Friends Only</option>
+                </select>
+            </div>            
+
             <div class="text-right">
                 <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
                     Save Changes

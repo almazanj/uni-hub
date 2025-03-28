@@ -20,6 +20,8 @@ web_patterns = [
     path("learn-more/", views.learn_more, name="learn_more"),
     path('terms-of-service/', views.terms_of_service, name='terms_of_service'),
     path('privacy-policy/', views.privacy_policy, name='privacy_policy'),
+    path('search/', views.search_profiles, name='search_profiles'),
+    path('user/<int:user_id>/', views.public_profile_view, name='view_profile'),
 
 ]
 
