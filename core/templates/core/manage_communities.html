@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}Manage Communities - Uni Hub{% endblock %}
+
+{% block content %}
+<div class="min-h-screen py-10 bg-gray-100 px-6">
+  <div class="max-w-4xl mx-auto bg-white shadow-md rounded-xl p-6">
+    <h1 class="text-2xl font-bold mb-6 text-center">Manage Communities</h1>
+    {% if communities %}
+      <table class="min-w-full table-auto text-sm text-left">
+        <thead class="text-gray-600 border-b">
+          <tr>
+            <th class="pb-2">Name</th>
+            <th class="pb-2">Created By</th>
+            <th class="pb-2">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for community in communities %}
+          <tr class="border-t">
+            <td class="py-2">{{ community.name }}</td>
+            <td class="py-2">{{ community.created_by.email }}</td>
+            <td class="py-2 space-x-2">
+              <a href="{% url 'core:community_details' community.id %}" class="text-blue-600 hover:underline">View</a>
+              <a href="{% url 'core:delete_community' community.id %}" class="text-red-600 hover:underline">Delete</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="text-center text-gray-500">No communities available.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

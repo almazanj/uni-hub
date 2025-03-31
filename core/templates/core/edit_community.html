@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Edit Community - Uni Hub{% endblock %}
+
+{% block content %}
+<div class="bg-gray-100 min-h-screen py-8">
+  <div class="container mx-auto px-4">
+    <div class="bg-white rounded-lg shadow-md p-6 max-w-xl mx-auto">
+      <h1 class="text-2xl font-semibold mb-6">Edit Community</h1>
+
+      <form method="post" class="space-y-6">
+        {% csrf_token %}
+
+        <div>
+          <label for="id_name" class="block text-sm font-medium text-gray-700">Community Name</label>
+          <input type="text" name="name" id="id_name" value="{{ form.name.value|default_if_none:'' }}" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500">
+          {% if form.name.errors %}
+            <p class="text-sm text-red-600 mt-1">{{ form.name.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <div>
+          <label for="id_description" class="block text-sm font-medium text-gray-700">Description</label>
+          <textarea name="description" id="id_description" rows="4" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500">{{ form.description.value|default_if_none:'' }}</textarea>
+          {% if form.description.errors %}
+            <p class="text-sm text-red-600 mt-1">{{ form.description.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <div class="flex justify-between items-center">
+          <a href="{% url 'core:admin_community_list' %}" class="text-blue-600 hover:underline">Back to Admin Panel</a>
+          <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition">
+            Save Changes
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

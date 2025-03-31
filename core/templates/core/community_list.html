@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Your Communities</h2>
+<ul>
+    {% for community in communities %}
+    <li>
+        <a href="{% url 'core:community_details' community.id %}">{{ community.name }}</a>
+    </li>
+    {% endfor %}
+</ul>
+<a href="{% url 'core:create_community' %}" class="btn">Create New Community</a>
+{% endblock %}

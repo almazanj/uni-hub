@@ -1,22 +1,29 @@
-from django.shortcuts import render, redirect
+from django.http import HttpResponseForbidden
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate, logout, update_session_auth_hash
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .forms import CustomUserCreationForm, CustomAuthenticationForm, CustomPasswordChangeForm
-from .models import Profile
-from .models import Community, Notification, Event
+from .forms import CustomUserCreationForm, CustomAuthenticationForm, CustomPasswordChangeForm, CommunityForm
+from .models import Profile, Community, Notification, Event, User
 from django.utils import timezone
 from django.db.models import Count
+
+from django.views.decorators.http import require_POST
+from django.contrib.auth.decorators import user_passes_test
+from django.contrib.admin.views.decorators import staff_member_required
+from .models import Message
+
 # DRF
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from .serializers import UserSerializer
-from .models import User
 
 # Create your views here.
 
+def is_admin(user):
+    return user.is_superuser
 
 def learn_more(request):
     return render(request, "core/learn_more.html")
@@ -164,7 +171,105 @@ def dashboard(request):
         'upcoming_events': upcoming_events,
     }
     
-    return render(request, 'core/dashboard.html', {})
+    return render(request, 'core/dashboard.html', context)
+
+@login_required
+def create_community(request):
+    if request.method == 'POST':
+        form = CommunityForm(request.POST)
+        if form.is_valid():
+            community = form.save(commit=False)
+            community.created_by = request.user
+            community.save()
+            community.members.add(request.user)
+            return redirect('core:list_communities')
+    else:
+        form = CommunityForm()
+    return render(request, 'core/create_community.html', {'form': form})
+
+@login_required
+def community_details(request, community_id):
+    community = get_object_or_404(Community, id=community_id)
+    is_member = request.user in community.members.all()
+
+    if request.method == 'POST':
+        content = request.POST.get('content')
+        if content:
+            Message.objects.create(community=community, user=request.user, content=content)
+            return redirect('core:community_details', community_id=community.id)
+
+    messages = community.messages.select_related('user').order_by('-created_at')
+
+    return render(request, 'core/community_details.html', {
+        'community': community,
+        'is_member': is_member,
+        'messages': messages,
+    })
+
+@login_required
+def join_community(request, community_id):
+    community = get_object_or_404(Community, id=community_id)
+    if request.user not in community.members.all():
+        community.members.add(request.user)
+        messages.success(request, "You have joined the community.")
+    else:
+        messages.error(request, "You are already a member of this community.")
+    return redirect('core:community_details', community_id=community_id)
+
+@login_required
+def leave_community(request, community_id):
+    community = get_object_or_404(Community, id=community_id)
+    if request.user in community.members.all():
+        community.members.remove(request.user)
+        messages.success(request, "You have left the community.")
+    else:
+        messages.error(request, "You are not a member of this community.")
+    return redirect('core:community_details', community_id=community_id)
+
+@login_required
+def list_communities(request):
+    communities = Community.objects.all()
+    return render(request, 'core/list_communities.html', {'communities': communities})
+
+
+@login_required
+def edit_community(request, community_id):
+    community = get_object_or_404(Community, id=community_id)
+    if not request.user.is_superuser:
+        return HttpResponseForbidden("You are not allowed to edit this community.")
+
+    if request.method == 'POST':
+        form = CommunityForm(request.POST, instance=community)
+        if form.is_valid():
+            form.save()
+            return redirect('core:admin_community_list') 
+    else:
+        form = CommunityForm(instance=community)
+
+    return render(request, 'core/edit_community.html', {'form': form, 'community': community})
+
+
+
+#Admin deletion function for communities
+
+@staff_member_required
+def delete_community(request, community_id):
+    community = get_object_or_404(Community, id=community_id)
+    community.delete()
+    messages.success(request, "Community deleted successfully.")
+    return redirect('core:admin_community_list')
+
+
+@staff_member_required
+def admin_community_list(request):
+    communities = Community.objects.all()
+    return render(request, 'core/admin_community_list.html', {'communities': communities})
+
+@login_required
+@user_passes_test(is_admin)
+def manage_communities(request):
+    communities = Community.objects.all()
+    return render(request, 'core/manage_communities.html', {'communities': communities})
 
 # API Views
 class UserListAPIView(APIView):
@@ -192,3 +297,4 @@ class UserListAPIView(APIView):
         }
         
         return Response(response_data, status=status.HTTP_200_OK)
+    

@@ -43,6 +43,9 @@ INSTALLED_APPS = [
     'rest_framework',
     'drf_spectacular',
     "django_browser_reload",
+    
+    'django.contrib.humanize',
+    
 ]
 
 REST_FRAMEWORK = {

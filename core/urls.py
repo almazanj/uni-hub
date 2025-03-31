@@ -20,6 +20,17 @@ web_patterns = [
     path("learn-more/", views.learn_more, name="learn_more"),
     path('terms-of-service/', views.terms_of_service, name='terms_of_service'),
     path('privacy-policy/', views.privacy_policy, name='privacy_policy'),
+    path('communities/', views.list_communities, name='list_communities'),
+    path('communities/create/', views.create_community, name='create_community'),
+    path('community/<int:community_id>/', views.community_details, name='community_details'),
+    path('community/<int:community_id>/edit/', views.edit_community, name='edit_community'),
+    path('community/<int:community_id>/join/', views.join_community, name='join_community'),
+    path('community/<int:community_id>/leave/', views.leave_community, name='leave_community'),
+    path('community/<int:community_id>/delete/', views.delete_community, name='delete_community'),
+    path('manage/communities/<int:community_id>/delete/', views.delete_community, name='delete_community'),
+    path('manage/communities/', views.admin_community_list, name='admin_community_list'),
+    path('manage/communities/<int:community_id>/edit/', views.edit_community, name='edit_community'),
+
 
 ]
 

@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Admin Community Management - Uni Hub{% endblock %}
+
+{% block content %}
+<div class="bg-gray-100 min-h-screen py-8">
+  <div class="container mx-auto px-4">
+    <div class="bg-white rounded-lg shadow-md p-6 max-w-3xl mx-auto">
+      <h1 class="text-2xl font-semibold mb-6">Manage Communities</h1>
+
+      {% if communities %}
+        <ul class="space-y-4">
+          {% for community in communities %}
+            <li class="border p-4 rounded-md">
+              <h2 class="text-lg font-semibold">{{ community.name }}</h2>
+              <p class="text-gray-600">{{ community.description }}</p>
+              <p class="text-sm text-gray-500">Total members: {{ community.members.count }}</p>
+
+              <div class="mt-4 flex flex-wrap gap-2">
+                <a href="{% url 'core:community_details' community.id %}" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition">View</a>
+                <a href="{% url 'core:edit_community' community.id %}" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 transition">Edit</a>
+                <form action="{% url 'core:delete_community' community.id %}" method="post" onsubmit="return confirm('Are you sure you want to delete this community?');">
+                  {% csrf_token %}
+                  <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition">Delete</button>
+                </form>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-gray-500">No communities available.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
