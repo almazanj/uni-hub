@@ -56,10 +56,17 @@ class User(AbstractUser):
         return self.email
     
 class Profile(models.Model):
+    PRIVACY_CHOICES = [
+        ('public', 'Public - Everyone can see your profile'),
+        ('private', 'Private - Only you can see your profile'),
+        ('friends', 'Friends Only - Only your friends can see your profile'),
+    ]
+
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     bio = models.TextField(blank=True)
     university = models.CharField(max_length=100, blank=True)
     course = models.CharField(max_length=100, blank=True)
+    privacy = models.CharField(max_length=10, choices=PRIVACY_CHOICES, default='public')  # ✅ Add this line
 
     def __str__(self):
         return f"{self.user.first_name} {self.user.last_name}'s Profile"

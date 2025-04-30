@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Search Profiles{% endblock %}
+
+{% block content %}
+<div class="container mx-auto max-w-3xl p-6">
+    <h2 class="text-2xl font-bold mb-4">Search Profiles</h2>
+
+    <form method="GET" action="{% url 'core:search_profiles' %}">
+        <input type="text" name="q" value="{{ query }}" placeholder="Search by name or email"
+               class="w-full p-2 border rounded-md mb-4">
+    </form>
+
+    {% if results %}
+        <ul>
+            {% for user in results %}
+                <li class="mb-2">
+                    <a href="{% url 'core:view_profile' user.id %}" class="text-indigo-600 hover:underline">
+                        {{ user.first_name }} {{ user.last_name }} ({{ user.email }})
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% elif query %}
+        <p>No users found matching "{{ query }}".</p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -25,6 +25,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from .serializers import UserSerializer
+from django.db.models import Q  
+from django.http import Http404
 
 # Create your views here.
 def learn_more(request):
@@ -115,15 +117,16 @@ def edit_profile_view(request):
     if request.method == "POST":
         bio = request.POST.get("bio", "")
         interests = request.POST.get("interests", "")
+        privacy = request.POST.get("privacy", "public")  # ✅ default to public if not set
 
         profile.bio = bio
         profile.interests = interests
+        profile.privacy = privacy  # ✅ save privacy selection
         profile.save()
 
         return redirect("core:profile")  # Redirect back to profile page
 
     return render(request, "core/edit_profile.html", {"profile": profile})
-
 @login_required
 def change_password_view(request):
     """
@@ -308,3 +311,39 @@ class UserListAPIView(APIView):
         }
         
         return Response(response_data, status=status.HTTP_200_OK)
+    
+@login_required
+def search_profiles(request):
+    query = request.GET.get('q', '')
+    results = []
+
+    if query:
+        results = User.objects.filter(
+            Q(first_name__icontains=query) |
+            Q(last_name__icontains=query) |
+            Q(email__icontains=query)
+        ).exclude(id=request.user.id)  # hide self
+
+    return render(request, 'core/search_profiles.html', {
+        'query': query,
+        'results': results
+    })
+
+@login_required
+def public_profile_view(request, user_id):
+    try:
+        profile_user = User.objects.get(id=user_id)
+        profile = profile_user.profile
+    except User.DoesNotExist:
+        raise Http404("User not found")
+    except Profile.DoesNotExist:
+        raise Http404("Profile not found")
+
+    # Privacy checks
+    if profile.privacy == "private" and profile_user != request.user:
+        raise Http404("This profile is private.")
+
+    return render(request, 'core/public_profile.html', {
+        'profile_user': profile_user,
+        'profile': profile
+    })
