@@ -1,8 +1,8 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate, logout, update_session_auth_hash
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, View
 from django.urls import reverse_lazy
 from django.http import Http404
 from django.utils.text import slugify
@@ -10,12 +10,12 @@ from django.utils import timezone
 from django.db.models import Count
 
 # Models
-from .models import User, Profile, Community, Notification, Event, Post, PostCategory
+from .models import User, Profile, Community, Notification, Event, Post, PostCategory, Comment
 
 # Forms
 from .forms import (
     CustomUserCreationForm, CustomAuthenticationForm, CustomPasswordChangeForm,
-    PostForm, CommunityForm
+    PostForm, CommunityForm, CommentForm
 )
 
 # DRF
@@ -192,7 +192,13 @@ class CommunityDetailView(DetailView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['posts'] = Post.objects.filter(community=self.object).order_by('-created_at')
+        posts = Post.objects.filter(community=self.object).order_by('-created_at')
+        
+        # Add comment count to each post
+        for post in posts:
+            post.comment_count = post.comments.count()
+            
+        context['posts'] = posts
         context['is_member'] = self.request.user in self.object.members.all() if self.request.user.is_authenticated else False
         return context
 
@@ -241,6 +247,13 @@ class PostDetailView(DetailView):
     model = Post
     template_name = 'core/post_detail.html'
     context_object_name = 'post'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['comments'] = Comment.objects.filter(post=self.object, parent=None)
+        context['comment_form'] = CommentForm()
+        context['is_member'] = self.request.user in self.object.community.members.all() if self.request.user.is_authenticated else False
+        return context
 
 class PostCreateView(LoginRequiredMixin, CreateView):
     model = Post
@@ -284,6 +297,84 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     
     def get_success_url(self):
         return reverse_lazy('core:community_detail', kwargs={'slug': self.object.community.slug})
+
+# Comment Views
+class CommentCreateView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        post = get_object_or_404(Post, pk=pk)
+        
+        # Check if user is a member of the community
+        if request.user not in post.community.members.all():
+            messages.error(request, "You must be a member to comment in this community.")
+            return redirect('core:post_detail', pk=pk)
+        
+        content = request.POST.get('content', '').strip()
+        if content:
+            Comment.objects.create(
+                post=post,
+                author=request.user,
+                content=content
+            )
+            messages.success(request, "Comment added successfully.")
+        
+        return redirect('core:post_detail', pk=pk)
+
+class ReplyCreateView(LoginRequiredMixin, View):
+    def post(self, request, post_pk, comment_pk):
+        post = get_object_or_404(Post, pk=post_pk)
+        parent_comment = get_object_or_404(Comment, pk=comment_pk)
+        
+        # Check if user is a member of the community
+        if request.user not in post.community.members.all():
+            messages.error(request, "You must be a member to reply in this community.")
+            return redirect('core:post_detail', pk=post_pk)
+        
+        content = request.POST.get('content', '').strip()
+        if content:
+            Comment.objects.create(
+                post=post,
+                author=request.user,
+                content=content,
+                parent=parent_comment
+            )
+            messages.success(request, "Reply added successfully.")
+        
+        return redirect('core:post_detail', pk=post_pk)
+
+class CommentUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
+    def test_func(self):
+        comment = get_object_or_404(Comment, pk=self.kwargs['pk'])
+        return self.request.user == comment.author
+    
+    def get(self, request, pk):
+        comment = get_object_or_404(Comment, pk=pk)
+        return render(request, 'core/edit_comment.html', {'comment': comment})
+    
+    def post(self, request, pk):
+        comment = get_object_or_404(Comment, pk=pk)
+        content = request.POST.get('content', '').strip()
+        
+        if content:
+            comment.content = content
+            comment.save()
+            messages.success(request, "Comment updated successfully.")
+        else:
+            messages.error(request, "Comment cannot be empty.")
+            return render(request, 'core/edit_comment.html', {'comment': comment})
+        
+        return redirect('core:post_detail', pk=comment.post.id)
+
+class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, View):
+    def test_func(self):
+        comment = get_object_or_404(Comment, pk=self.kwargs['pk'])
+        return self.request.user == comment.author
+    
+    def get(self, request, pk):
+        comment = get_object_or_404(Comment, pk=pk)
+        post_id = comment.post.id
+        comment.delete()
+        messages.success(request, "Comment deleted successfully.")
+        return redirect('core:post_detail', pk=post_id)
 
 # API Views
 class UserListAPIView(APIView):

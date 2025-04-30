@@ -56,6 +56,10 @@
                         <div>
                             Posted by {{ post.author.get_full_name|default:post.author.username }} •
                             {{ post.created_at|date:"F j, Y" }}
+                            {% if post.comment_count %}
+                            • <span class="text-indigo-600">{{ post.comment_count }}
+                                {% if post.comment_count == 1 %}comment{% else %}comments{% endif %}</span>
+                            {% endif %}
                         </div>
                         {% if user == post.author %}
                         <div class="flex space-x-2" onclick="event.stopPropagation()">

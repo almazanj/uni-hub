@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, PasswordChangeForm
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
-from .models import Post, Community
+from .models import Post, Community, Comment
 
 User = get_user_model()
 
@@ -54,3 +54,11 @@ class CommunityForm(forms.ModelForm):
         model = Community
         fields = ['name', 'description']
         exclude = ['created_by', 'slug']
+
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        fields = ['content']
+        widgets = {
+            'content': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Add a comment...', 'class': 'w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500'}),
+        }

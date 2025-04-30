@@ -4,7 +4,8 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     CommunityListView, CommunityDetailView, CommunityCreateView,
     JoinCommunityView, LeaveCommunityView, 
-    PostDetailView, PostCreateView, PostUpdateView, PostDeleteView
+    PostDetailView, PostCreateView, PostUpdateView, PostDeleteView,
+    CommentCreateView, ReplyCreateView, CommentUpdateView, CommentDeleteView
 )
 
 # Create a router for viewsets
@@ -53,4 +54,10 @@ urlpatterns = [
     path('posts/<int:pk>/', PostDetailView.as_view(), name='post_detail'),
     path('posts/<int:pk>/edit/', PostUpdateView.as_view(), name='post_update'),
     path('posts/<int:pk>/delete/', PostDeleteView.as_view(), name='post_delete'),
+    
+    # Comment URLs
+    path('posts/<int:pk>/comment/', CommentCreateView.as_view(), name='add_comment'),
+    path('posts/<int:post_pk>/comment/<int:comment_pk>/reply/', ReplyCreateView.as_view(), name='add_reply'),
+    path('comments/<int:pk>/edit/', CommentUpdateView.as_view(), name='edit_comment'),
+    path('comments/<int:pk>/delete/', CommentDeleteView.as_view(), name='delete_comment'),
 ]
