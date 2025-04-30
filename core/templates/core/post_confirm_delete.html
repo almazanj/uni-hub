@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete Post - Uni Hub{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-md">
+    <div class="bg-white rounded-lg shadow-md p-6 text-center">
+        <h1 class="text-xl font-bold text-gray-900 mb-4">Delete Post</h1>
+
+        <p class="text-gray-600 mb-6">Are you sure you want to delete "{{ object.title }}"? This action cannot be
+            undone.</p>
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="flex justify-center space-x-4">
+                <a href="{% url 'core:post_detail' object.id %}"
+                    class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">
+                    Cancel
+                </a>
+                <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
+                    Delete
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

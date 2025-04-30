@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, PasswordChangeForm
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
+from .models import Post, Community
 
 User = get_user_model()
 
@@ -41,4 +42,15 @@ class CustomPasswordChangeForm(PasswordChangeForm):
     """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # You can customize field attributes or help text here if needed
+        # customize field attributes or help text here if needed
+
+class PostForm(forms.ModelForm):
+    class Meta:
+        model = Post
+        fields = ['title', 'content', 'category']
+
+class CommunityForm(forms.ModelForm):
+    class Meta:
+        model = Community
+        fields = ['name', 'description']
+        exclude = ['created_by', 'slug']

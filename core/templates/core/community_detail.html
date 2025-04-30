@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ community.name }} - Uni Hub{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div class="flex justify-between items-start">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900 mb-2">{{ community.name }}</h1>
+                <p class="text-gray-600 mb-2">{{ community.description }}</p>
+                <p class="text-sm text-gray-500">{{ community.members.count }} members • Created
+                    {{ community.created_at|date:"F j, Y" }}</p>
+            </div>
+            {% if user.is_authenticated %}
+            {% if is_member %}
+            <div class="flex space-x-2">
+                <a href="{% url 'core:post_create' community.slug %}"
+                    class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+                    New Post
+                </a>
+                <a href="{% url 'core:leave_community' community.slug %}"
+                    class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">
+                    Leave Community
+                </a>
+            </div>
+            {% else %}
+            <a href="{% url 'core:join_community' community.slug %}"
+                class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+                Join Community
+            </a>
+            {% endif %}
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="mb-6">
+        <h2 class="text-xl font-bold text-gray-900 mb-4">Posts</h2>
+
+        {% if posts %}
+        <div class="space-y-4">
+            {% for post in posts %}
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex justify-between items-start">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">
+                        <a href="{% url 'core:post_detail' post.id %}"
+                            class="hover:text-indigo-600">{{ post.title }}</a>
+                    </h3>
+                    {% if post.category %}
+                    <span
+                        class="bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded-full">{{ post.category.name }}</span>
+                    {% endif %}
+                </div>
+                <p class="text-gray-600 mb-3">{{ post.content|truncatechars:150 }}</p>
+                <div class="flex justify-between items-center text-sm text-gray-500">
+                    <div>
+                        Posted by {{ post.author.get_full_name|default:post.author.username }} •
+                        {{ post.created_at|date:"F j, Y" }}
+                    </div>
+                    {% if user == post.author %}
+                    <div class="flex space-x-2">
+                        <a href="{% url 'core:post_update' post.id %}"
+                            class="text-indigo-600 hover:text-indigo-800">Edit</a>
+                        <a href="{% url 'core:post_delete' post.id %}"
+                            class="text-red-600 hover:text-red-800">Delete</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="bg-white rounded-lg shadow-md p-6 text-center">
+            <p class="text-gray-600 mb-4">No posts in this community yet.</p>
+            {% if is_member %}
+            <p>Be the first to create a post!</p>
+            {% elif user.is_authenticated %}
+            <p>Join the community to create posts.</p>
+            {% else %}
+            <p>Login and join this community to create posts.</p>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

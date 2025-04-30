@@ -2,22 +2,31 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate, logout, update_session_auth_hash
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .forms import CustomUserCreationForm, CustomAuthenticationForm, CustomPasswordChangeForm
-from .models import Profile
-from .models import Community, Notification, Event
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.urls import reverse_lazy
+from django.http import Http404
+from django.utils.text import slugify
 from django.utils import timezone
 from django.db.models import Count
+
+# Models
+from .models import User, Profile, Community, Notification, Event, Post, PostCategory
+
+# Forms
+from .forms import (
+    CustomUserCreationForm, CustomAuthenticationForm, CustomPasswordChangeForm,
+    PostForm, CommunityForm
+)
+
 # DRF
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from .serializers import UserSerializer
-from .models import User
 
 # Create your views here.
-
-
 def learn_more(request):
     return render(request, "core/learn_more.html")
 
@@ -33,6 +42,7 @@ def terms_of_service(request):
 
 def privacy_policy(request):
     return render(request, 'core/privacy_policy.html')
+
 def register_view(request):
     """
     Web view function for user registration.
@@ -165,6 +175,112 @@ def dashboard(request):
     }
     
     return render(request, 'core/dashboard.html', {})
+
+# Community Views
+class CommunityListView(ListView):
+    model = Community
+    template_name = 'core/community_list.html'
+    context_object_name = 'communities'
+
+class CommunityDetailView(DetailView):
+    model = Community
+    template_name = 'core/community_detail.html'
+    context_object_name = 'community'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['posts'] = Post.objects.filter(community=self.object).order_by('-created_at')
+        context['is_member'] = self.request.user in self.object.members.all() if self.request.user.is_authenticated else False
+        return context
+
+class CommunityCreateView(LoginRequiredMixin, CreateView):
+    model = Community
+    form_class = CommunityForm
+    template_name = 'core/community_form.html'
+    
+    def post(self, request, *args, **kwargs):
+        # Print what's in the post data
+        print(f"POST data: {request.POST}")
+        return super().post(request, *args, **kwargs)
+    
+    def form_valid(self, form):
+        # Make sure to set the created_by field before saving
+        form.instance.created_by = self.request.user
+        # Set the slug field based on the name
+        form.instance.slug = slugify(form.instance.name)
+        
+        # Now let the form save
+        response = super().form_valid(form)
+        
+        # Add the current user to members
+        self.object.members.add(self.request.user)
+        
+        return response
+
+class JoinCommunityView(LoginRequiredMixin, DetailView):
+    model = Community
+    
+    def get(self, request, *args, **kwargs):
+        community = self.get_object()
+        community.members.add(request.user)
+        return redirect('core:community_detail', slug=community.slug)
+
+class LeaveCommunityView(LoginRequiredMixin, DetailView):
+    model = Community
+    
+    def get(self, request, *args, **kwargs):
+        community = self.get_object()
+        community.members.remove(request.user)
+        return redirect('core:community_detail', slug=community.slug)
+
+# Post Views
+class PostDetailView(DetailView):
+    model = Post
+    template_name = 'core/post_detail.html'
+    context_object_name = 'post'
+
+class PostCreateView(LoginRequiredMixin, CreateView):
+    model = Post
+    form_class = PostForm
+    template_name = 'core/post_form.html'
+    
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        form.instance.community = Community.objects.get(slug=self.kwargs['slug'])
+        return super().form_valid(form)
+    
+    def get_success_url(self):
+        return reverse_lazy('core:community_detail', kwargs={'slug': self.kwargs['slug']})
+    
+    def dispatch(self, request, *args, **kwargs):
+        community = Community.objects.get(slug=self.kwargs['slug'])
+        if request.user not in community.members.all():
+            messages.error(request, "You must be a member to post in this community.")
+            return redirect('core:community_detail', slug=self.kwargs['slug'])
+        return super().dispatch(request, *args, **kwargs)
+
+class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = Post
+    form_class = PostForm
+    template_name = 'core/post_form.html'
+    
+    def test_func(self):
+        post = self.get_object()
+        return self.request.user == post.author
+    
+    def get_success_url(self):
+        return reverse_lazy('core:post_detail', kwargs={'pk': self.object.pk})
+
+class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = Post
+    template_name = 'core/post_confirm_delete.html'
+    
+    def test_func(self):
+        post = self.get_object()
+        return self.request.user == post.author
+    
+    def get_success_url(self):
+        return reverse_lazy('core:community_detail', kwargs={'slug': self.object.community.slug})
 
 # API Views
 class UserListAPIView(APIView):

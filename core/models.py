@@ -2,8 +2,10 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.utils.translation import gettext_lazy as _
 from django.conf import settings
-# from django.contrib.auth.models import User
-# from django.utils import timezone
+from django.urls import reverse
+from django.utils import timezone
+from django.utils.text import slugify
+
 class UserManager(BaseUserManager):
     """
     Custom user model manager where email is the unique identifier
@@ -65,16 +67,66 @@ class Profile(models.Model):
 class Community(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField()
+    slug = models.SlugField(unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_communities')
     members = models.ManyToManyField(User, related_name='communities')
     
+    class Meta:
+        verbose_name_plural = "Communities"
+    
     def __str__(self):
         return self.name
+    
+    def save(self, *args, **kwargs):
+        print(f"Saving community: {self.name}")
+        print(f"Created by: {self.created_by}")
         
-    @property
-    def member_count(self):
-        return self.members.count()
+        if not self.slug:
+            base_slug = slugify(self.name)
+            slug = base_slug
+            counter = 1
+            
+            while Community.objects.filter(slug=slug).exclude(id=self.id).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+            self.slug = slug
+            
+        # Check if created_by is set
+        if not self.created_by_id:
+            raise ValueError("Community must have a creator")
+            
+        super().save(*args, **kwargs)
+        
+    def get_absolute_url(self):
+        return reverse('core:community_detail', kwargs={'slug': self.slug})
+
+class PostCategory(models.Model):
+    name = models.CharField(max_length=50)
+    
+    class Meta:
+        verbose_name_plural = "Post categories"
+    
+    def __str__(self):
+        return self.name
+
+class Post(models.Model):
+    title = models.CharField(max_length=200)
+    content = models.TextField()
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts')
+    community = models.ForeignKey(Community, on_delete=models.CASCADE, related_name='posts')
+    category = models.ForeignKey(PostCategory, on_delete=models.SET_NULL, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return self.title
+    
+    def get_absolute_url(self):
+        return reverse('core:post_detail', kwargs={'pk': self.pk})
 
 class Event(models.Model):
     title = models.CharField(max_length=200)

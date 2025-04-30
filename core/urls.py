@@ -1,6 +1,11 @@
 from django.urls import path, include
 from . import views
 from rest_framework.routers import DefaultRouter
+from .views import (
+    CommunityListView, CommunityDetailView, CommunityCreateView,
+    JoinCommunityView, LeaveCommunityView, 
+    PostDetailView, PostCreateView, PostUpdateView, PostDeleteView
+)
 
 # Create a router for viewsets
 router = DefaultRouter()
@@ -33,4 +38,17 @@ urlpatterns = [
         # Manual resource endpoints
         path('users/', views.UserListAPIView.as_view(), name='user-list'),
     ])),
+    
+    # Community URLs
+    path('communities/', CommunityListView.as_view(), name='community_list'),
+    path('communities/new/', CommunityCreateView.as_view(), name='community_create'),
+    path('communities/<slug:slug>/', CommunityDetailView.as_view(), name='community_detail'),
+    path('communities/<slug:slug>/join/', JoinCommunityView.as_view(), name='join_community'),
+    path('communities/<slug:slug>/leave/', LeaveCommunityView.as_view(), name='leave_community'),
+    
+    # Post URLs
+    path('communities/<slug:slug>/post/new/', PostCreateView.as_view(), name='post_create'),
+    path('posts/<int:pk>/', PostDetailView.as_view(), name='post_detail'),
+    path('posts/<int:pk>/edit/', PostUpdateView.as_view(), name='post_update'),
+    path('posts/<int:pk>/delete/', PostDeleteView.as_view(), name='post_delete'),
 ]
