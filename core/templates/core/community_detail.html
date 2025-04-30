@@ -40,33 +40,34 @@
         {% if posts %}
         <div class="space-y-4">
             {% for post in posts %}
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <div class="flex justify-between items-start">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-2">
-                        <a href="{% url 'core:post_detail' post.id %}"
-                            class="hover:text-indigo-600">{{ post.title }}</a>
-                    </h3>
-                    {% if post.category %}
-                    <span
-                        class="bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded-full">{{ post.category.name }}</span>
-                    {% endif %}
-                </div>
-                <p class="text-gray-600 mb-3">{{ post.content|truncatechars:150 }}</p>
-                <div class="flex justify-between items-center text-sm text-gray-500">
-                    <div>
-                        Posted by {{ post.author.get_full_name|default:post.author.username }} •
-                        {{ post.created_at|date:"F j, Y" }}
+            <a href="{% url 'core:post_detail' post.id %}" class="block hover:no-underline">
+                <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+                    <div class="flex justify-between items-start">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">
+                            {{ post.title }}
+                        </h3>
+                        {% if post.category %}
+                        <span
+                            class="bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded-full">{{ post.category.name }}</span>
+                        {% endif %}
                     </div>
-                    {% if user == post.author %}
-                    <div class="flex space-x-2">
-                        <a href="{% url 'core:post_update' post.id %}"
-                            class="text-indigo-600 hover:text-indigo-800">Edit</a>
-                        <a href="{% url 'core:post_delete' post.id %}"
-                            class="text-red-600 hover:text-red-800">Delete</a>
+                    <p class="text-gray-600 mb-3">{{ post.content|truncatechars:150 }}</p>
+                    <div class="flex justify-between items-center text-sm text-gray-500">
+                        <div>
+                            Posted by {{ post.author.get_full_name|default:post.author.username }} •
+                            {{ post.created_at|date:"F j, Y" }}
+                        </div>
+                        {% if user == post.author %}
+                        <div class="flex space-x-2" onclick="event.stopPropagation()">
+                            <a href="{% url 'core:post_update' post.id %}" class="text-indigo-600 hover:text-indigo-800"
+                                onclick="event.stopPropagation()">Edit</a>
+                            <a href="{% url 'core:post_delete' post.id %}" class="text-red-600 hover:text-red-800"
+                                onclick="event.stopPropagation()">Delete</a>
+                        </div>
+                        {% endif %}
                     </div>
-                    {% endif %}
                 </div>
-            </div>
+            </a>
             {% endfor %}
         </div>
         {% else %}
