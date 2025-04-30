@@ -108,21 +108,21 @@ class Community(models.Model):
     def get_absolute_url(self):
         return reverse('core:community_detail', kwargs={'slug': self.slug})
 
-class PostCategory(models.Model):
-    name = models.CharField(max_length=50)
-    
-    class Meta:
-        verbose_name_plural = "Post categories"
+class Tag(models.Model):
+    name = models.CharField(max_length=50, unique=True)
     
     def __str__(self):
         return self.name
+    
+    def get_absolute_url(self):
+        return reverse('core:tag_posts', kwargs={'tag_name': self.name})
 
 class Post(models.Model):
     title = models.CharField(max_length=200)
     content = models.TextField()
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts')
     community = models.ForeignKey(Community, on_delete=models.CASCADE, related_name='posts')
-    category = models.ForeignKey(PostCategory, on_delete=models.SET_NULL, null=True, blank=True)
+    tags = models.ManyToManyField(Tag, related_name='posts', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -134,6 +134,26 @@ class Post(models.Model):
     
     def get_absolute_url(self):
         return reverse('core:post_detail', kwargs={'pk': self.pk})
+    
+    def save(self, *args, **kwargs):
+        """Extract hashtags from content when saving"""
+        super().save(*args, **kwargs)
+        # Process hashtags after the post is saved
+        self.process_hashtags()
+    
+    def process_hashtags(self):
+        """Extract hashtags from post content and link them to this post"""
+        # Clear existing tags
+        self.tags.clear()
+        
+        # Find all hashtags in the content using regex
+        import re
+        hashtags = re.findall(r'#(\w+)', self.content)
+        
+        # Add unique hashtags
+        for tag_name in set(hashtags):
+            tag, created = Tag.objects.get_or_create(name=tag_name.lower())
+            self.tags.add(tag)
 
 class Event(models.Model):
     title = models.CharField(max_length=200)
@@ -182,4 +202,4 @@ class Comment(models.Model):
         ordering = ['created_at']
     
     def __str__(self):
-        return f'Comment by {self.author.username} on {self.post.title}'
+        return f'Comment by {self.author.email} on {self.post.title}'

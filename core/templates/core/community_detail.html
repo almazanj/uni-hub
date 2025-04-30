@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load post_filters %}
 
 {% block title %}{{ community.name }} - Uni Hub{% endblock %}
 
@@ -46,12 +47,22 @@
                         <h3 class="text-lg font-semibold text-gray-900 mb-2">
                             {{ post.title }}
                         </h3>
-                        {% if post.category %}
-                        <span
-                            class="bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded-full">{{ post.category.name }}</span>
-                        {% endif %}
                     </div>
-                    <p class="text-gray-600 mb-3">{{ post.content|truncatechars:150 }}</p>
+                    <p class="text-gray-600 mb-3">{{ post.content|hide_hashtags|truncatechars:150 }}</p>
+
+                    <!-- Display tags -->
+                    {% if post.tags.all %}
+                    <div class="mb-2">
+                        {% for tag in post.tags.all %}
+                        <a href="{% url 'core:tag_posts' tag.name %}"
+                            class="inline-block bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded-full mr-1"
+                            onclick="event.stopPropagation()">
+                            #{{ tag.name }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
                     <div class="flex justify-between items-center text-sm text-gray-500">
                         <div>
                             Posted by {{ post.author.get_full_name|default:post.author.username }} •

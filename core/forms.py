@@ -47,7 +47,7 @@ class CustomPasswordChangeForm(PasswordChangeForm):
 class PostForm(forms.ModelForm):
     class Meta:
         model = Post
-        fields = ['title', 'content', 'category']
+        fields = ['title', 'content']
 
 class CommunityForm(forms.ModelForm):
     class Meta:
@@ -59,6 +59,3 @@ class CommentForm(forms.ModelForm):
     class Meta:
         model = Comment
         fields = ['content']
-        widgets = {
-            'content': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Add a comment...', 'class': 'w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500'}),
-        }

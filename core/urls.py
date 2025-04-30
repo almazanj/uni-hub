@@ -5,7 +5,8 @@ from .views import (
     CommunityListView, CommunityDetailView, CommunityCreateView,
     JoinCommunityView, LeaveCommunityView, 
     PostDetailView, PostCreateView, PostUpdateView, PostDeleteView,
-    CommentCreateView, ReplyCreateView, CommentUpdateView, CommentDeleteView
+    CommentCreateView, ReplyCreateView, CommentUpdateView, CommentDeleteView,
+    TagPostsView
 )
 
 # Create a router for viewsets
@@ -60,4 +61,7 @@ urlpatterns = [
     path('posts/<int:post_pk>/comment/<int:comment_pk>/reply/', ReplyCreateView.as_view(), name='add_reply'),
     path('comments/<int:pk>/edit/', CommentUpdateView.as_view(), name='edit_comment'),
     path('comments/<int:pk>/delete/', CommentDeleteView.as_view(), name='delete_comment'),
+    
+    # Tag URLs
+    path('tags/<str:tag_name>/', TagPostsView.as_view(), name='tag_posts'),
 ]

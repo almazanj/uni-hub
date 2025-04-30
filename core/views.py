@@ -10,7 +10,7 @@ from django.utils import timezone
 from django.db.models import Count
 
 # Models
-from .models import User, Profile, Community, Notification, Event, Post, PostCategory, Comment
+from .models import User, Profile, Community, Notification, Event, Post, Comment, Tag
 
 # Forms
 from .forms import (
@@ -177,7 +177,7 @@ def dashboard(request):
         'upcoming_events': upcoming_events,
     }
     
-    return render(request, 'core/dashboard.html', {})
+    return render(request, 'core/dashboard.html', context)
 
 # Community Views
 class CommunityListView(ListView):
@@ -438,3 +438,19 @@ def public_profile_view(request, user_id):
         'profile_user': profile_user,
         'profile': profile
     })
+
+class TagPostsView(ListView):
+    """Display all posts with a specific tag"""
+    model = Post
+    template_name = 'core/tag_posts.html'
+    context_object_name = 'posts'
+    
+    def get_queryset(self):
+        tag_name = self.kwargs.get('tag_name')
+        return Post.objects.filter(tags__name=tag_name.lower())
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        tag_name = self.kwargs.get('tag_name')
+        context['tag_name'] = tag_name
+        return context
