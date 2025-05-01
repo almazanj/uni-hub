@@ -58,7 +58,7 @@ class User(AbstractUser):
 class Profile(models.Model):
     PRIVACY_CHOICES = [
         ('public', 'Public - Everyone can see your profile'),
-        ('private', 'Private - Only you can see your profile'),
+        ('private', 'Private - Only you can view your profile'),
         ('friends', 'Friends Only - Only your friends can see your profile'),
     ]
 
@@ -66,7 +66,8 @@ class Profile(models.Model):
     bio = models.TextField(blank=True)
     university = models.CharField(max_length=100, blank=True)
     course = models.CharField(max_length=100, blank=True)
-    privacy = models.CharField(max_length=10, choices=PRIVACY_CHOICES, default='public')  # ✅ Add this line
+    privacy = models.CharField(max_length=10, choices=PRIVACY_CHOICES, default='public')
+    profile_image = models.ImageField(upload_to='profile_images/', null=True, blank=True)
 
     def __str__(self):
         return f"{self.user.first_name} {self.user.last_name}'s Profile"

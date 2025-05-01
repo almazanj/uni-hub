@@ -7,8 +7,36 @@
     <div class="bg-white shadow-lg rounded-lg p-6">
         <h2 class="text-2xl font-bold text-gray-900 mb-4">Edit Profile</h2>
 
-        <form method="POST">
+        <!-- Current profile image display -->
+        <div class="mb-6 flex flex-col items-center">
+            <div class="h-40 w-40 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center mb-3">
+                {% if profile.profile_image %}
+                    <img src="{{ profile.profile_image.url }}" alt="Your profile picture" class="h-full w-full object-cover">
+                {% else %}
+                    <!-- Default SVG profile icon -->
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-full w-full text-gray-300" viewBox="0 0 340 340">
+                        <path fill="currentColor" d="m169,.5a169,169 0 1,0 2,0zm0,86a76,76 0 1 1-2,0zM57,287q27-35 67-35h92q40,0 67,35a164,164 0 0,1-226,0"/>
+                    </svg>
+                {% endif %}
+            </div>
+        </div>
+
+        <form method="POST" enctype="multipart/form-data">
             {% csrf_token %}
+            
+            <!-- Profile Image Upload -->
+            <div class="mb-4">
+                <label class="block text-gray-700 font-medium mb-2">Profile Picture</label>
+                <input type="file" name="profile_image" accept="image/*" class="w-full px-4 py-2 border rounded-md">
+                <p class="text-sm text-gray-500 mt-1">Upload a new image to change your profile picture</p>
+                {% if profile.profile_image %}
+                <div class="mt-2 flex items-center">
+                    <input type="checkbox" id="remove_image" name="remove_image" class="mr-2">
+                    <label for="remove_image" class="text-sm text-red-600">Remove current profile picture</label>
+                </div>
+                {% endif %}
+            </div>
+
             <div class="mb-4">
                 <label class="block text-gray-700 font-medium">Bio</label>
                 <textarea name="bio" class="w-full px-4 py-2 border rounded-md">{{ profile.bio }}</textarea>

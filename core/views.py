@@ -9,6 +9,7 @@ from django.utils.text import slugify
 from django.utils import timezone
 from django.db.models import Count
 from django.template.loader import render_to_string
+import os
 
 # Models
 from .models import User, Profile, Community, Notification, Event, Post, Comment, Tag
@@ -110,23 +111,36 @@ def profile_view(request):
     return render(request, 'core/profile.html', {'user': request.user})
 
 @login_required
-def edit_profile_view(request):
-    # Ensure user has a profile (create if missing)
-    profile, created = Profile.objects.get_or_create(user=request.user)
-
-    if request.method == "POST":
-        bio = request.POST.get("bio", "")
-        interests = request.POST.get("interests", "")
-        privacy = request.POST.get("privacy", "public")  # ✅ default to public if not set
-
-        profile.bio = bio
-        profile.interests = interests
-        profile.privacy = privacy  # ✅ save privacy selection
+def edit_profile(request):
+    try:
+        profile = request.user.profile
+    except Profile.DoesNotExist:
+        profile = Profile.objects.create(user=request.user)
+    
+    if request.method == 'POST':
+        # Handle profile update
+        profile.bio = request.POST.get('bio', '')
+        profile.interests = request.POST.get('interests', '')
+        profile.privacy = request.POST.get('privacy', 'public')
+        
+        # Handle profile image upload
+        if 'profile_image' in request.FILES:
+            profile.profile_image = request.FILES['profile_image']
+        
+        # Check if the user wants to remove the current image
+        if 'remove_image' in request.POST:
+            if profile.profile_image:
+                # Delete the file if it exists
+                if os.path.isfile(profile.profile_image.path):
+                    os.remove(profile.profile_image.path)
+                profile.profile_image = None
+        
         profile.save()
+        messages.success(request, "Profile updated successfully.")
+        return redirect('core:profile')
+    
+    return render(request, 'core/edit_profile.html', {'profile': profile})
 
-        return redirect("core:profile")  # Redirect back to profile page
-
-    return render(request, "core/edit_profile.html", {"profile": profile})
 @login_required
 def change_password_view(request):
     """
