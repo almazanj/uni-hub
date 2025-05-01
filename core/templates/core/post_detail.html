@@ -117,6 +117,43 @@
                 replyForm.classList.add('hidden');
             }
         });
+
+        // Collapse/expand functionality for comments
+        document.querySelectorAll('.collapse-button').forEach(button => {
+            button.addEventListener('click', function () {
+                const commentId = this.getAttribute('data-comment-id');
+                const commentDiv = this.closest(`#comment-${commentId}`);
+
+                // Toggle comment content and children visibility
+                const commentContent = commentDiv.querySelector('.comment-content');
+                const commentActions = commentDiv.querySelector('.comment-actions');
+                const commentChildren = commentDiv.querySelector('.comment-children');
+                const replyForm = commentDiv.querySelector(`#reply-form-${commentId}`);
+
+                // Toggle visibility
+                commentContent.classList.toggle('hidden');
+                commentActions.classList.toggle('hidden');
+                if (commentChildren) {
+                    commentChildren.classList.toggle('hidden');
+                }
+                if (replyForm && !replyForm.classList.contains('hidden')) {
+                    replyForm.classList.add('hidden');
+                }
+
+                // Toggle plus/minus icons
+                const minusIcon = this.querySelector('.minus-icon');
+                const plusIcon = this.querySelector('.plus-icon');
+                minusIcon.classList.toggle('hidden');
+                plusIcon.classList.toggle('hidden');
+
+                // Update button aria-label for accessibility
+                if (minusIcon.classList.contains('hidden')) {
+                    this.setAttribute('aria-label', 'Expand comment');
+                } else {
+                    this.setAttribute('aria-label', 'Collapse comment');
+                }
+            });
+        });
     });
 </script>
 {% endblock %}
