@@ -211,15 +211,17 @@ class Notification(models.Model):
         ordering = ['-created_at']
 
 class Comment(models.Model):
-    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="comments")
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies')
-    
-    class Meta:
-        ordering = ['created_at']
+    parent = models.ForeignKey(
+        'self', null=True, blank=True, on_delete=models.CASCADE, related_name="replies"
+    )
     
     def __str__(self):
-        return f'Comment by {self.author.email} on {self.post.title}'
+        return f"{self.author.username}: {self.content[:30]}"
+        
+    class Meta:
+        ordering = ['created_at']

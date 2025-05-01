@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, View
 from django.urls import reverse_lazy
-from django.http import Http404
+from django.http import Http404, HttpResponseForbidden
 from django.utils.text import slugify
 from django.utils import timezone
 from django.db.models import Count
@@ -26,7 +26,6 @@ from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from .serializers import UserSerializer
 from django.db.models import Q  
-from django.http import Http404
 
 # Create your views here.
 def learn_more(request):
@@ -318,7 +317,14 @@ class PostDetailView(DetailView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['comments'] = Comment.objects.filter(post=self.object, parent=None)
+        
+        # Get only the top-level comments (no parent)
+        comments = Comment.objects.filter(
+            post=self.object, 
+            parent__isnull=True
+        ).prefetch_related('replies', 'replies__replies', 'author')
+        
+        context['comments'] = comments
         context['comment_form'] = CommentForm()
         context['is_member'] = self.request.user in self.object.community.members.all() if self.request.user.is_authenticated else False
         return context
@@ -398,16 +404,63 @@ class ReplyCreateView(LoginRequiredMixin, View):
             return redirect('core:post_detail', pk=post_pk)
         
         content = request.POST.get('content', '').strip()
+        parent_reply_id = request.POST.get('parent_reply_id')
+        
         if content:
-            Comment.objects.create(
+            # Create the reply comment
+            reply = Comment(
                 post=post,
                 author=request.user,
                 content=content,
                 parent=parent_comment
             )
+            
+            # If replying to a reply, set the parent_reply field
+            if parent_reply_id:
+                try:
+                    parent_reply = Comment.objects.get(pk=parent_reply_id)
+                    reply.parent_reply = parent_reply
+                except Comment.DoesNotExist:
+                    pass
+                
+            reply.save()
             messages.success(request, "Reply added successfully.")
-        
+            
         return redirect('core:post_detail', pk=post_pk)
+
+@login_required
+def add_reply(request, post_id, comment_id):
+    post = get_object_or_404(Post, pk=post_id)
+    root_comment = get_object_or_404(Comment, pk=comment_id)
+    
+    # Check if the user is a member of the community
+    if request.user not in post.community.members.all():
+        return HttpResponseForbidden("You must be a member of this community to reply to comments.")
+    
+    if request.method == 'POST':
+        content = request.POST.get('content', '').strip()
+        parent_id = request.POST.get('parent_reply_id')
+        
+        if content:
+            # Create the reply
+            reply = Comment(
+                post=post,
+                author=request.user,
+                content=content
+            )
+            
+            # Set the correct parent
+            if parent_id and parent_id != comment_id:
+                reply.parent = get_object_or_404(Comment, pk=parent_id)
+            else:
+                reply.parent = root_comment
+                
+            reply.save()
+            return redirect('core:post_detail', pk=post_id)
+        else:
+            messages.error(request, "Reply content cannot be empty")
+            
+    return redirect('core:post_detail', pk=post_id)
 
 class CommentUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
     def test_func(self):
