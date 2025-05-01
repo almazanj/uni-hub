@@ -15,7 +15,9 @@
                     Created {{ community.created_at|date:"F j, Y" }} •
                     {% if community.leader %}
                     <span class="font-medium">Leader:
-                        {{ community.leader.get_full_name|default:community.leader.email }}</span>
+                        <strong>{{ community.leader.get_full_name|default:community.leader.username }}</strong>
+                        <span class="text-xs text-gray-500">({{ community.leader.email }})</span>
+                    </span>
                     {% else %}
                     <span class="font-medium text-red-600">Unclaimed</span>
                     {% endif %}
@@ -73,7 +75,8 @@
 
                     <div class="flex justify-between items-center text-sm text-gray-500">
                         <div>
-                            Posted by {{ post.author.get_full_name|default:post.author.username }} •
+                            Posted by <strong>{{ post.author.get_full_name|default:post.author.username }}</strong>
+                            <span class="text-xs text-gray-500">({{ post.author.email }})</span> •
                             {{ post.created_at|date:"F j, Y" }}
                             {% if post.comment_count %}
                             • <span class="text-indigo-600">{{ post.comment_count }}

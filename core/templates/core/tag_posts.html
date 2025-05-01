@@ -40,8 +40,9 @@
                     {% endif %}
 
                     <div class="flex justify-between items-center text-sm text-gray-500">
-                        <div>
-                            Posted by {{ post.author.get_full_name|default:post.author.username }} •
+                        <div class="text-sm text-gray-500 mt-2">
+                            Posted by <strong>{{ post.author.get_full_name|default:post.author.username }}</strong>
+                            <span class="text-xs text-gray-500">({{ post.author.email }})</span> •
                             {{ post.created_at|date:"F j, Y" }}
                             {% if post.comments.count %}
                             • <span class="text-indigo-600">{{ post.comments.count }}
