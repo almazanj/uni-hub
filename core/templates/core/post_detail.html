@@ -57,7 +57,19 @@
 
     <!-- Comments Section -->
     <div class="bg-white rounded-lg shadow-md p-6">
-        <h2 class="text-xl font-bold text-gray-900 mb-4">Comments ({{ comments|length }})</h2>
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold text-gray-900">Comments ({{ comments|length }})</h2>
+            <div class="sort-buttons">
+                <div class="flex rounded-md overflow-hidden">
+                    <button id="sort-new" class="px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700 transition">
+                        New
+                    </button>
+                    <button id="sort-old" class="px-4 py-2 bg-gray-200 text-gray-800 hover:bg-gray-300 transition">
+                        Old
+                    </button>
+                </div>
+            </div>
+        </div>
 
         <!-- Comment form -->
         {% if user.is_authenticated and is_member %}
@@ -87,7 +99,7 @@
         {% endif %}
 
         <!-- Comments list -->
-        <div class="space-y-6">
+        <div id="comments-container" class="space-y-6">
             {% if comments %}
             {% for comment in comments %}
             {% with level=0 is_reply=False template_name="core/includes/comment.html" %}
@@ -154,6 +166,96 @@
                 }
             });
         });
+
+        // Sort comments functionality
+        const sortNewBtn = document.getElementById('sort-new');
+        const sortOldBtn = document.getElementById('sort-old');
+        const commentsContainer = document.getElementById('comments-container');
+
+        // Store original comments HTML for quick toggling
+        const originalCommentsHTML = commentsContainer.innerHTML;
+        let isNewestFirst = true; // Default sorting (newest first)
+
+        function toggleSortButtons() {
+            if (isNewestFirst) {
+                // New is active
+                sortNewBtn.className = "px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700 transition";
+                sortOldBtn.className = "px-4 py-2 bg-gray-200 text-gray-800 hover:bg-gray-300 transition";
+            } else {
+                // Old is active
+                sortOldBtn.className = "px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700 transition";
+                sortNewBtn.className = "px-4 py-2 bg-gray-200 text-gray-800 hover:bg-gray-300 transition";
+            }
+        }
+
+        sortNewBtn.addEventListener('click', function () {
+            if (!isNewestFirst) {
+                isNewestFirst = true;
+                // Send AJAX request to get comments sorted by newest
+                fetch('{% url "core:sort_comments" post.id %}?sort=new')
+                    .then(response => response.json())
+                    .then(data => {
+                        commentsContainer.innerHTML = data.html;
+                        // Reattach event listeners to new DOM elements
+                        attachEventListeners();
+                        toggleSortButtons();
+                    });
+            }
+        });
+
+        sortOldBtn.addEventListener('click', function () {
+            if (isNewestFirst) {
+                isNewestFirst = false;
+                // Send AJAX request to get comments sorted by oldest
+                fetch('{% url "core:sort_comments" post.id %}?sort=old')
+                    .then(response => response.json())
+                    .then(data => {
+                        commentsContainer.innerHTML = data.html;
+                        // Reattach event listeners to new DOM elements
+                        attachEventListeners();
+                        toggleSortButtons();
+                    });
+            }
+        });
+
+        function attachEventListeners() {
+            // Re-attach collapse/expand functionality
+            document.querySelectorAll('.collapse-button').forEach(button => {
+                button.addEventListener('click', function () {
+                    const commentId = this.getAttribute('data-comment-id');
+                    const commentDiv = this.closest(`#comment-${commentId}`);
+
+                    // Toggle comment content and children visibility
+                    const commentContent = commentDiv.querySelector('.comment-content');
+                    const commentActions = commentDiv.querySelector('.comment-actions');
+                    const commentChildren = commentDiv.querySelector('.comment-children');
+                    const replyForm = commentDiv.querySelector(`#reply-form-${commentId}`);
+
+                    // Toggle visibility
+                    commentContent.classList.toggle('hidden');
+                    commentActions.classList.toggle('hidden');
+                    if (commentChildren) {
+                        commentChildren.classList.toggle('hidden');
+                    }
+                    if (replyForm && !replyForm.classList.contains('hidden')) {
+                        replyForm.classList.add('hidden');
+                    }
+
+                    // Toggle plus/minus icons
+                    const minusIcon = this.querySelector('.minus-icon');
+                    const plusIcon = this.querySelector('.plus-icon');
+                    minusIcon.classList.toggle('hidden');
+                    plusIcon.classList.toggle('hidden');
+
+                    // Update button aria-label for accessibility
+                    if (minusIcon.classList.contains('hidden')) {
+                        this.setAttribute('aria-label', 'Expand comment');
+                    } else {
+                        this.setAttribute('aria-label', 'Collapse comment');
+                    }
+                });
+            });
+        }
     });
 </script>
 {% endblock %}

@@ -4,10 +4,11 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, View
 from django.urls import reverse_lazy
-from django.http import Http404, HttpResponseForbidden
+from django.http import Http404, HttpResponseForbidden, JsonResponse
 from django.utils.text import slugify
 from django.utils import timezone
 from django.db.models import Count
+from django.template.loader import render_to_string
 
 # Models
 from .models import User, Profile, Community, Notification, Event, Post, Comment, Tag
@@ -318,11 +319,11 @@ class PostDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         
-        # Get only the top-level comments (no parent)
+        # Get only the top-level comments (no parent), sorted by newest first
         comments = Comment.objects.filter(
             post=self.object, 
             parent__isnull=True
-        ).prefetch_related('replies', 'replies__replies', 'author')
+        ).order_by('-created_at').prefetch_related('replies', 'replies__replies', 'author')
         
         context['comments'] = comments
         context['comment_form'] = CommentForm()
@@ -496,6 +497,48 @@ class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, View):
         comment.delete()
         messages.success(request, "Comment deleted successfully.")
         return redirect('core:post_detail', pk=post_id)
+
+def sort_comments(request, pk):
+    """
+    Handle AJAX requests for sorting comments by newest or oldest
+    """
+    post = get_object_or_404(Post, pk=pk)
+    sort_option = request.GET.get('sort', 'new')
+    
+    # Get only the top-level comments (no parent)
+    if sort_option == 'old':
+        # Sort from oldest to newest (ascending by created_at)
+        comments = Comment.objects.filter(
+            post=post, 
+            parent__isnull=True
+        ).order_by('created_at').prefetch_related('replies', 'replies__replies', 'author')
+    else:
+        # Sort from newest to oldest (descending by created_at)
+        comments = Comment.objects.filter(
+            post=post, 
+            parent__isnull=True
+        ).order_by('-created_at').prefetch_related('replies', 'replies__replies', 'author')
+    
+    # Render the sorted comments to HTML
+    html = ""
+    for comment in comments:
+        html += render_to_string(
+            'core/includes/comment.html',
+            {
+                'comment': comment, 
+                'post': post,
+                'user': request.user,
+                'is_member': request.user in post.community.members.all() if request.user.is_authenticated else False,
+                'level': 0,
+                'is_reply': False
+            },
+            request
+        )
+    
+    return JsonResponse({
+        'html': html,
+        'count': comments.count()
+    })
 
 # API Views
 class UserListAPIView(APIView):
