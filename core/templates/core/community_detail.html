@@ -10,8 +10,16 @@
             <div>
                 <h1 class="text-2xl font-bold text-gray-900 mb-2">{{ community.name }}</h1>
                 <p class="text-gray-600 mb-2">{{ community.description }}</p>
-                <p class="text-sm text-gray-500">{{ community.members.count }} members • Created
-                    {{ community.created_at|date:"F j, Y" }}</p>
+                <p class="text-sm text-gray-500">
+                    {{ community.members.count }} members •
+                    Created {{ community.created_at|date:"F j, Y" }} •
+                    {% if community.leader %}
+                    <span class="font-medium">Leader:
+                        {{ community.leader.get_full_name|default:community.leader.email }}</span>
+                    {% else %}
+                    <span class="font-medium text-red-600">Unclaimed</span>
+                    {% endif %}
+                </p>
             </div>
             {% if user.is_authenticated %}
             {% if is_member %}

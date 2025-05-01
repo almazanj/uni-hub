@@ -29,7 +29,7 @@
                 </label>
                 <textarea name="{{ form.content.html_name }}" id="{{ form.content.id_for_label }}" rows="6"
                     class="block w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-                    placeholder="Write your post... Use #hashtags to tag your post">{{ form.content.value|default:'' }}</textarea>
+                    placeholder="Write your post...">{{ form.content.value|default:'' }}</textarea>
                 {% if form.content.errors %}
                 <p class="text-red-500 text-xs mt-1">{{ form.content.errors.0 }}</p>
                 {% endif %}

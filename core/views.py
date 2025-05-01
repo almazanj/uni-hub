@@ -190,6 +190,22 @@ class CommunityDetailView(DetailView):
     template_name = 'core/community_detail.html'
     context_object_name = 'community'
     
+    def get_object(self, queryset=None):
+        """Force a fresh database query to avoid stale leader data"""
+        slug = self.kwargs.get('slug')
+        # Force a completely fresh query from the database with no caching
+        community = Community.objects.select_related('leader').filter(slug=slug).first()
+        
+        if not community:
+            raise Http404("Community not found")
+            
+        # Double-check leader is a member
+        if community.leader and community.members.filter(id=community.leader.id).count() == 0:
+            community.leader = None
+            community.save(update_fields=['leader'])
+        
+        return community
+    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         posts = Post.objects.filter(community=self.object).order_by('-created_at')
@@ -210,13 +226,31 @@ class CommunityCreateView(LoginRequiredMixin, CreateView):
     def post(self, request, *args, **kwargs):
         # Print what's in the post data
         print(f"POST data: {request.POST}")
+        
+        # Check if a community with the same name already exists
+        community_name = request.POST.get('name')
+        if community_name:
+            potential_slug = slugify(community_name)
+            existing_community = Community.objects.filter(slug=potential_slug).first()
+            if existing_community:
+                form = self.get_form()
+                form.add_error('name', f'A community with this name already exists: {existing_community.name}')
+                return self.form_invalid(form)
+                
         return super().post(request, *args, **kwargs)
+    
+    def form_invalid(self, form):
+        """Override form_invalid which avoids an AttributeError"""
+        self.object = None
+        return self.render_to_response(self.get_context_data(form=form))
     
     def form_valid(self, form):
         # Make sure to set the created_by field before saving
         form.instance.created_by = self.request.user
         # Set the slug field based on the name
         form.instance.slug = slugify(form.instance.name)
+        # Set the leader as the creator
+        form.instance.leader = self.request.user
         
         # Now let the form save
         response = super().form_valid(form)
@@ -231,7 +265,19 @@ class JoinCommunityView(LoginRequiredMixin, DetailView):
     
     def get(self, request, *args, **kwargs):
         community = self.get_object()
+        
+        # Add user to members
         community.members.add(request.user)
+        
+        # Check if community is leaderless and make this user the leader
+        if community.leader_id is None:
+            # Use ORM update instead of direct SQL
+            Community.objects.filter(id=community.id, leader__isnull=True).update(leader=request.user)
+            community.refresh_from_db()
+            messages.success(request, "You have joined the community and become its leader!")
+        else:
+            messages.success(request, "You have joined the community!")
+            
         return redirect('core:community_detail', slug=community.slug)
 
 class LeaveCommunityView(LoginRequiredMixin, DetailView):
@@ -239,7 +285,29 @@ class LeaveCommunityView(LoginRequiredMixin, DetailView):
     
     def get(self, request, *args, **kwargs):
         community = self.get_object()
+        is_leader = request.user == community.leader
+        
+        # Remove user from members
         community.members.remove(request.user)
+        
+        # If the user is the leader, handle leadership
+        if is_leader:
+            # Get members count after removal
+            members_count = community.members.count()
+            
+            if members_count == 0:
+                # Using ORM but with refresh_from_db to ensure consistency
+                Community.objects.filter(id=community.id).update(leader=None)
+                # Refresh the object to ensure it reflects the database state
+                community.refresh_from_db()
+                messages.warning(request, "Community is now leaderless until someone joins.")
+            else:
+                # Transfer leadership to another member
+                earliest_member = community.members.order_by('id').first()
+                Community.objects.filter(id=community.id).update(leader=earliest_member)
+                community.refresh_from_db()
+                messages.info(request, "Leadership has been transferred to another member.")
+        
         return redirect('core:community_detail', slug=community.slug)
 
 # Post Views

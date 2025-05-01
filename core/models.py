@@ -78,6 +78,7 @@ class Community(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_communities')
     members = models.ManyToManyField(User, related_name='communities')
+    leader = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='led_communities', null=True)
     
     class Meta:
         verbose_name_plural = "Communities"
@@ -102,11 +103,30 @@ class Community(models.Model):
         # Check if created_by is set
         if not self.created_by_id:
             raise ValueError("Community must have a creator")
+        
+        # Set creator as leader if leader is not set
+        if not self.leader_id and self.created_by_id:
+            self.leader = self.created_by
             
         super().save(*args, **kwargs)
         
     def get_absolute_url(self):
         return reverse('core:community_detail', kwargs={'slug': self.slug})
+        
+    def transfer_leadership(self):
+        """Transfer leadership to the earliest member if the current leader leaves"""
+        if not self.leader or self.leader not in self.members.all():
+            # Get the earliest member who is not the current leader
+            earliest_member = self.members.order_by('id').first()
+            if earliest_member:
+                self.leader = earliest_member
+                self.save()
+                return True
+            else:
+                # No members left, set leader to None
+                self.leader = None
+                self.save()
+                return False
 
 class Tag(models.Model):
     name = models.CharField(max_length=50, unique=True)
