@@ -14,10 +14,23 @@
         </div>
 
         <div class="flex justify-between items-start mt-4">
-            <h1 class="text-2xl font-bold text-gray-900 mb-2">{{ post.title }}</h1>
+            <h1 class="text-2xl font-bold text-gray-900 mb-2 break-words overflow-hidden">
+                {% if post.visibility == 'members' %}
+                <span
+                    class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-indigo-100 text-indigo-800 mr-2">
+                    <svg class="h-3 w-3 mr-0.5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd"
+                            d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2-2 0 012-2zm8-2v2H7V7a3 3 0 116 0z"
+                            clip-rule="evenodd"></path>
+                    </svg>
+                    Members Only
+                </span>
+                {% endif %}
+                {{ post.title }}
+            </h1>
         </div>
 
-        <div class="text-sm text-gray-500 mb-4">
+        <div class="text-sm text-gray-500 mb-2">
             Posted by <strong>{{ post.author.get_full_name|default:post.author.username }}</strong> <span
                 class="text-xs text-gray-500">({{ post.author.email }})</span> • {{ post.created_at|date:"F j, Y" }}
             {% if post.created_at != post.updated_at %}
@@ -25,21 +38,61 @@
             {% endif %}
         </div>
 
-        <!-- Display tags -->
-        {% if post.tags.all %}
-        <div class="mb-4">
-            {% for tag in post.tags.all %}
-            <a href="{% url 'core:tag_posts' tag.name %}"
-                class="inline-block bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded-full mr-1">
-                #{{ tag.name }}
-            </a>
-            {% endfor %}
+        <!-- Post content -->
+        <div class="prose max-w-none my-6">
+            {% if content_restricted %}
+            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                                clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-yellow-800">Members-Only Content</h3>
+                        <div class="mt-2 text-sm text-yellow-700">
+                            <p>This post is only visible to community members. To view this content, you need to join
+                                the community.</p>
+                        </div>
+                        {% if user.is_authenticated %}
+                        <div class="mt-4">
+                            <a href="{% url 'core:join_community' post.community.slug %}"
+                                class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                Join {{ post.community.name }}
+                            </a>
+                        </div>
+                        {% else %}
+                        <div class="mt-4">
+                            <a href="{% url 'core:login' %}?next={% url 'core:post_detail' post.id %}"
+                                class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                Log in to join community
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <!-- Autoformatting with Beautify seems to break this line for django-->
+            <div class="whitespace-pre-wrap text-base leading-relaxed break-all md:break-words overflow-hidden">{{ post.content|hide_hashtags|urlize }}</div>
+            {% endif %}
+        </div>
+
+        <!-- Post tags -->
+        {% if not content_restricted and post.tags.exists %}
+        <div class="mb-2">
+            <div class="flex flex-wrap gap-2">
+                {% for tag in post.tags.all %}
+                <a href="{% url 'core:tag_posts' tag.name %}"
+                    class="inline-block bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded-full mr-1">
+                    #{{ tag.name }}
+                </a>
+                {% endfor %}
+            </div>
         </div>
         {% endif %}
-
-        <div class="prose max-w-none text-gray-800 mb-6">
-            {{ post.content|hide_hashtags|linebreaks|urlize }}
-        </div>
 
         {% if user == post.author %}
         <div class="flex space-x-4 border-t pt-4">
@@ -56,9 +109,15 @@
     </div>
 
     <!-- Comments Section -->
+    {% if content_restricted %}
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Comments</h2>
+        <p class="text-gray-600">Comments are only visible to community members.</p>
+    </div>
+    {% else %}
     <div class="bg-white rounded-lg shadow-md p-6">
         <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-bold text-gray-900">Comments ({{ comments|length }})</h2>
+            <h2 class="text-xl font-bold text-gray-900">Comments ({{ post.comment_count }})</h2>
             <div class="sort-buttons">
                 <div class="flex rounded-md overflow-hidden">
                     <button id="sort-new" class="px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700 transition">
@@ -111,6 +170,7 @@
             {% endif %}
         </div>
     </div>
+    {% endif %}
 </div>
 
 <script>
@@ -118,8 +178,18 @@
         // Universal reply button handler for any level of nesting
         document.addEventListener('click', function (event) {
             if (event.target.classList.contains('reply-button')) {
+                event.preventDefault();
                 const commentId = event.target.getAttribute('data-comment-id');
                 const replyForm = document.getElementById(`reply-form-${commentId}`);
+                
+                // Close all other open reply forms first
+                document.querySelectorAll('[id^="reply-form-"]').forEach(form => {
+                    if (form.id !== `reply-form-${commentId}` && !form.classList.contains('hidden')) {
+                        form.classList.add('hidden');
+                    }
+                });
+                
+                // Toggle the clicked reply form
                 replyForm.classList.toggle('hidden');
             }
 

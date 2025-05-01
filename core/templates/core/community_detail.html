@@ -55,10 +55,27 @@
                 <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
                     <div class="flex justify-between items-start">
                         <h3 class="text-lg font-semibold text-gray-900 mb-2">
+                            {% if post.visibility == 'members' %}
+                            <span
+                                class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800 mr-2">
+                                <svg class="h-3 w-3 mr-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd"
+                                        d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 116 0z"
+                                        clip-rule="evenodd"></path>
+                                </svg>
+                                Members Only
+                            </span>
+                            {% endif %}
                             {{ post.title }}
                         </h3>
                     </div>
-                    <p class="text-gray-600 mb-3">{{ post.content|hide_hashtags|truncatechars:150 }}</p>
+                    <p class="text-gray-800 line-clamp-2 mb-3">
+                        {% if post.visibility == 'members' and not is_member %}
+                        <span class="text-gray-500 italic">This post is only visible to community members</span>
+                        {% else %}
+                        {{ post.content|hide_hashtags|truncatechars:150 }}
+                        {% endif %}
+                    </p>
 
                     <!-- Display tags -->
                     {% if post.tags.all %}

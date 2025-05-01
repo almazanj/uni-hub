@@ -37,6 +37,24 @@
                     #discussion)</p>
             </div>
 
+            <div class="mb-4">
+                <label for="{{ form.visibility.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                    Visibility
+                </label>
+                <select name="{{ form.visibility.html_name }}" id="{{ form.visibility.id_for_label }}"
+                    class="block w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
+                    {% for value, display in form.visibility.field.choices %}
+                    <option value="{{ value }}" {% if form.visibility.value == value %}selected{% endif %}>
+                        {{ display }}
+                    </option>
+                    {% endfor %}
+                </select>
+                {% if form.visibility.errors %}
+                <p class="text-red-500 text-xs mt-1">{{ form.visibility.errors.0 }}</p>
+                {% endif %}
+                <p class="text-sm text-gray-500 mt-1">Control who can see your post</p>
+            </div>
+
             <div class="flex justify-between">
                 {% if form.instance.id %}
                 <a href="{% url 'core:post_detail' form.instance.id %}"

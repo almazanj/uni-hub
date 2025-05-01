@@ -138,13 +138,19 @@ class Tag(models.Model):
         return reverse('core:tag_posts', kwargs={'tag_name': self.name})
 
 class Post(models.Model):
+    VISIBILITY_CHOICES = [
+        ('public', 'Public'),
+        ('members', 'Community Members Only')
+    ]
+    
     title = models.CharField(max_length=200)
     content = models.TextField()
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts')
     community = models.ForeignKey(Community, on_delete=models.CASCADE, related_name='posts')
-    tags = models.ManyToManyField(Tag, related_name='posts', blank=True)
+    visibility = models.CharField(max_length=20, choices=VISIBILITY_CHOICES, default='public')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    tags = models.ManyToManyField(Tag, related_name='posts', blank=True)
     
     class Meta:
         ordering = ['-created_at']
@@ -168,7 +174,7 @@ class Post(models.Model):
         
         # Find all hashtags in the content using regex
         import re
-        hashtags = re.findall(r'#(\w+)', self.content)
+        hashtags = re.findall(r'#([\w-]+)', self.content)
         
         # Add unique hashtags
         for tag_name in set(hashtags):

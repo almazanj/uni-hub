@@ -43,11 +43,12 @@ class CustomPasswordChangeForm(PasswordChangeForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # customize field attributes or help text here if needed
+# Forms here will only be used for data validation and not mix with presentation logic.
 
 class PostForm(forms.ModelForm):
     class Meta:
         model = Post
-        fields = ['title', 'content']
+        fields = ['title', 'content', 'visibility']
 
 class CommunityForm(forms.ModelForm):
     class Meta:

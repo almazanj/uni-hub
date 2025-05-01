@@ -42,7 +42,7 @@ This template is designed to be recursive and handle any level of comment nestin
                 </div>
             </div>
 
-            <div class="comment-content text-gray-700 mb-2">{{ comment.content|linebreaks }}</div>
+            <div class="comment-content text-gray-700 mb-2 whitespace-pre-wrap break-all md:break-words overflow-hidden">{{ comment.content|urlize }}</div>
 
             <!-- Comment actions -->
             <div class="comment-actions flex">

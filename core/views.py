@@ -319,6 +319,17 @@ class PostDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         
+        # Check visibility permissions
+        post = self.object
+        content_restricted = False
+        
+        post.comment_count = Comment.objects.filter(post=post).count()
+        
+        # For members-only posts, check if user is authenticated and a member
+        if post.visibility == 'members':
+            if not self.request.user.is_authenticated or self.request.user not in post.community.members.all():
+                content_restricted = True
+        
         # Get only the top-level comments (no parent), sorted by newest first
         comments = Comment.objects.filter(
             post=self.object, 
@@ -328,6 +339,8 @@ class PostDetailView(DetailView):
         context['comments'] = comments
         context['comment_form'] = CommentForm()
         context['is_member'] = self.request.user in self.object.community.members.all() if self.request.user.is_authenticated else False
+        context['content_restricted'] = content_restricted
+        
         return context
 
 class PostCreateView(LoginRequiredMixin, CreateView):
@@ -338,6 +351,7 @@ class PostCreateView(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         form.instance.author = self.request.user
         form.instance.community = Community.objects.get(slug=self.kwargs['slug'])
+        form.instance.visibility = form.cleaned_data.get('visibility', 'public')  # Set visibility
         return super().form_valid(form)
     
     def get_success_url(self):
@@ -358,6 +372,10 @@ class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     def test_func(self):
         post = self.get_object()
         return self.request.user == post.author
+    
+    def form_valid(self, form):
+        form.instance.visibility = form.cleaned_data.get('visibility', 'public')  # Update visibility
+        return super().form_valid(form)
     
     def get_success_url(self):
         return reverse_lazy('core:post_detail', kwargs={'pk': self.object.pk})
@@ -617,4 +635,15 @@ class TagPostsView(ListView):
         context = super().get_context_data(**kwargs)
         tag_name = self.kwargs.get('tag_name')
         context['tag_name'] = tag_name
+        
+        # Add community membership information for the posts
+        if self.request.user.is_authenticated:
+            # Get communities where the current user is a member
+            user_communities = Community.objects.filter(members=self.request.user)
+            
+            # Add a flag to check if user is a member for each post's community
+            posts = context['posts']
+            for post in posts:
+                post.is_member = post.community in user_communities
+        
         return context
