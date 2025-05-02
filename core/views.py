@@ -133,54 +133,81 @@ def edit_profile(request):
         if 'profile_image' in request.FILES:
             uploaded_image = request.FILES['profile_image']
             
-            # Check if crop data is provided
-            if 'crop_x' in request.POST and 'crop_y' in request.POST and 'crop_size' in request.POST:
-                # Open image using PIL
+            # Security checks for the uploaded file
+            # Check file size (limit to 5MB)
+            if uploaded_image.size > 5 * 1024 * 1024:
+                messages.error(request, "Image file is too large (maximum 5MB allowed).")
+                return render(request, 'core/edit_profile.html', {'profile': profile})
+                
+            # Check file type by content-type
+            allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+            if uploaded_image.content_type not in allowed_types:
+                messages.error(request, "Only JPEG, PNG, GIF and WebP image files are allowed.")
+                return render(request, 'core/edit_profile.html', {'profile': profile})
+                
+            # Additional check for valid extension
+            valid_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp']
+            ext = os.path.splitext(uploaded_image.name)[1].lower()
+            if ext not in valid_extensions:
+                messages.error(request, "File extension not allowed.")
+                return render(request, 'core/edit_profile.html', {'profile': profile})
+            
+            # Try to open with PIL to verify it's actually an image
+            try:
                 img = Image.open(uploaded_image)
+                img.verify() # Verify it's an image
+                uploaded_image.seek(0) # Reset file pointer after verify
+                img = Image.open(uploaded_image) # Re-open for processing
                 
-                # Get crop coordinates and size
-                x = float(request.POST.get('crop_x'))
-                y = float(request.POST.get('crop_y'))
-                size = float(request.POST.get('crop_size'))
-                
-                # Calculate crop box (left, upper, right, lower)
-                half_size = size / 2
-                left = max(0, x - half_size)
-                upper = max(0, y - half_size)
-                right = min(img.width, x + half_size)
-                lower = min(img.height, y + half_size)
-                
-                # Ensure our crop box is valid (right > left and lower > upper)
-                if right <= left or lower <= upper:
-                    # Use default crop if calculated coordinates are invalid
-                    dimension = min(img.width, img.height)
-                    left = (img.width - dimension) // 2
-                    upper = (img.height - dimension) // 2
-                    right = left + dimension
-                    lower = upper + dimension
-                
-                # Crop and resize the image to a square
-                cropped_img = img.crop((left, upper, right, lower))
-                output_size = (500, 500)  # Standard size for profile images
-                cropped_img = cropped_img.resize(output_size, Image.LANCZOS)
-                
-                # Save the cropped image
-                output = BytesIO()
-                if cropped_img.mode != 'RGB':
-                    cropped_img = cropped_img.convert('RGB')
-                cropped_img.save(output, format='JPEG', quality=90)
-                output.seek(0)
-                
-                # Create a new file to save
-                profile_image = InMemoryUploadedFile(
-                    output, 'ImageField', 
-                    f"{uploaded_image.name.split('.')[0]}_cropped.jpg",
-                    'image/jpeg', sys.getsizeof(output), None
-                )
-                profile.profile_image = profile_image
-            else:
-                # No crop data, use original image
-                profile.profile_image = uploaded_image
+                # Check if crop data is provided
+                if 'crop_x' in request.POST and 'crop_y' in request.POST and 'crop_size' in request.POST:
+                    # Get crop coordinates and size
+                    x = float(request.POST.get('crop_x'))
+                    y = float(request.POST.get('crop_y'))
+                    size = float(request.POST.get('crop_size'))
+                    
+                    # Calculate crop box (left, upper, right, lower)
+                    half_size = size / 2
+                    left = max(0, x - half_size)
+                    upper = max(0, y - half_size)
+                    right = min(img.width, x + half_size)
+                    lower = min(img.height, y + half_size)
+                    
+                    # Ensure our crop box is valid (right > left and lower > upper)
+                    if right <= left or lower <= upper:
+                        # Use default crop if calculated coordinates are invalid
+                        dimension = min(img.width, img.height)
+                        left = (img.width - dimension) // 2
+                        upper = (img.height - dimension) // 2
+                        right = left + dimension
+                        lower = upper + dimension
+                    
+                    # Crop and resize the image to a square
+                    cropped_img = img.crop((left, upper, right, lower))
+                    output_size = (500, 500)  # Standard size for profile images
+                    cropped_img = cropped_img.resize(output_size, Image.LANCZOS)
+                    
+                    # Save the cropped image
+                    output = BytesIO()
+                    if cropped_img.mode != 'RGB':
+                        cropped_img = cropped_img.convert('RGB')
+                    cropped_img.save(output, format='JPEG', quality=90)
+                    output.seek(0)
+                    
+                    # Create a new file to save
+                    profile_image = InMemoryUploadedFile(
+                        output, 'ImageField', 
+                        f"{uploaded_image.name.split('.')[0]}_cropped.jpg",
+                        'image/jpeg', sys.getsizeof(output), None
+                    )
+                    profile.profile_image = profile_image
+                else:
+                    # No crop data, use original image
+                    profile.profile_image = uploaded_image
+                    
+            except Exception as e:
+                messages.error(request, f"Invalid image file: {str(e)}")
+                return render(request, 'core/edit_profile.html', {'profile': profile})
         
         # Check if the user wants to remove the current image
         if 'remove_image' in request.POST:
