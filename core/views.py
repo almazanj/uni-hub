@@ -11,6 +11,12 @@ from django.db.models import Count
 from django.template.loader import render_to_string
 import os
 
+# Image processing imports
+from PIL import Image
+from io import BytesIO
+from django.core.files.uploadedfile import InMemoryUploadedFile
+import sys
+
 # Models
 from .models import User, Profile, Community, Notification, Event, Post, Comment, Tag
 
@@ -125,7 +131,56 @@ def edit_profile(request):
         
         # Handle profile image upload
         if 'profile_image' in request.FILES:
-            profile.profile_image = request.FILES['profile_image']
+            uploaded_image = request.FILES['profile_image']
+            
+            # Check if crop data is provided
+            if 'crop_x' in request.POST and 'crop_y' in request.POST and 'crop_size' in request.POST:
+                # Open image using PIL
+                img = Image.open(uploaded_image)
+                
+                # Get crop coordinates and size
+                x = float(request.POST.get('crop_x'))
+                y = float(request.POST.get('crop_y'))
+                size = float(request.POST.get('crop_size'))
+                
+                # Calculate crop box (left, upper, right, lower)
+                half_size = size / 2
+                left = max(0, x - half_size)
+                upper = max(0, y - half_size)
+                right = min(img.width, x + half_size)
+                lower = min(img.height, y + half_size)
+                
+                # Ensure our crop box is valid (right > left and lower > upper)
+                if right <= left or lower <= upper:
+                    # Use default crop if calculated coordinates are invalid
+                    dimension = min(img.width, img.height)
+                    left = (img.width - dimension) // 2
+                    upper = (img.height - dimension) // 2
+                    right = left + dimension
+                    lower = upper + dimension
+                
+                # Crop and resize the image to a square
+                cropped_img = img.crop((left, upper, right, lower))
+                output_size = (500, 500)  # Standard size for profile images
+                cropped_img = cropped_img.resize(output_size, Image.LANCZOS)
+                
+                # Save the cropped image
+                output = BytesIO()
+                if cropped_img.mode != 'RGB':
+                    cropped_img = cropped_img.convert('RGB')
+                cropped_img.save(output, format='JPEG', quality=90)
+                output.seek(0)
+                
+                # Create a new file to save
+                profile_image = InMemoryUploadedFile(
+                    output, 'ImageField', 
+                    f"{uploaded_image.name.split('.')[0]}_cropped.jpg",
+                    'image/jpeg', sys.getsizeof(output), None
+                )
+                profile.profile_image = profile_image
+            else:
+                # No crop data, use original image
+                profile.profile_image = uploaded_image
         
         # Check if the user wants to remove the current image
         if 'remove_image' in request.POST:
