@@ -22,3 +22,12 @@ def get_item(lst, index):
         
     # Use modulo to cycle through colors for deeper nesting levels
     return items[int(index) % len(items)]
+
+@register.filter
+def is_meaningfully_edited(created_at, updated_at):
+    """
+    Check if a post has been meaningfully edited with a small threshold
+    Returns True only if more than 2 seconds difference
+    """
+    time_difference = updated_at - created_at
+    return time_difference.total_seconds() > 2 
