@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load post_filters %}
+{% load static %}
 
 {% block title %}{{ community.name }} - Uni Hub{% endblock %}
 
@@ -10,16 +11,23 @@
             <div>
                 <h1 class="text-2xl font-bold text-gray-900 mb-2">{{ community.name }}</h1>
                 <p class="text-gray-600 mb-2">{{ community.description }}</p>
-                <p class="text-sm text-gray-500">
-                    {{ community.members.count }} members •
-                    Created {{ community.created_at|date:"F j, Y" }} •
+                <p class="text-sm text-gray-500 flex items-center flex-wrap">
+                    <span>{{ community.members.count }} members •</span>
+                    <span class="ml-1">Created {{ community.created_at|date:"F j, Y" }} •</span>
                     {% if community.leader %}
-                    <span class="font-medium">Leader:
-                        <strong>{{ community.leader.get_full_name|default:community.leader.username }}</strong>
+                    <span class="font-medium flex items-center ml-1">Leader:
+                        <span class="inline-block h-6 w-6 rounded-full overflow-hidden bg-gray-100 mx-1 ml-2 mr-2">
+                            {% if community.leader.profile.profile_image %}
+                                <img src="{{ community.leader.profile.profile_image.url }}" alt="{{ community.leader.get_full_name|default:community.leader.username }}'s profile" class="h-full w-full object-cover">
+                            {% else %}
+                                <img src="{% static 'img/default_pfp.svg' %}" alt="Default profile icon" class="h-full w-full object-cover">
+                            {% endif %}
+                        </span>
+                        <strong class="mr-1">{{ community.leader.get_full_name|default:community.leader.username }}</strong>
                         <span class="text-xs text-gray-500">({{ community.leader.email }})</span>
                     </span>
                     {% else %}
-                    <span class="font-medium text-red-600">Unclaimed</span>
+                    <span class="font-medium text-red-600 ml-1">Unclaimed</span>
                     {% endif %}
                 </p>
             </div>
@@ -91,13 +99,18 @@
                     {% endif %}
 
                     <div class="flex justify-between items-center text-sm text-gray-500">
-                        <div>
-                            Posted by <strong>{{ post.author.get_full_name|default:post.author.username }}</strong>
-                            <span class="text-xs text-gray-500">({{ post.author.email }})</span> •
-                            {{ post.created_at|date:"F j, Y" }}
-                            {% if post.comment_count %}
-                            • <span class="text-indigo-600">{{ post.comment_count }}
-                                {% if post.comment_count == 1 %}comment{% else %}comments{% endif %}</span>
+                        <div class="flex items-center">
+                                Posted by<span class="inline-block h-6 w-6 rounded-full overflow-hidden bg-gray-100 mr-2 ml-2">
+                                {% if post.author.profile.profile_image %}
+                                    <img src="{{ post.author.profile.profile_image.url }}" alt="{{ post.author.get_full_name|default:post.author.username }}'s profile" class="h-full w-full object-cover">
+                                {% else %}
+                                    <img src="{% static 'img/default_pfp.svg' %}" alt="Default profile icon" class="h-full w-full object-cover">
+                                {% endif %}
+                            </span><strong class="mr-1">{{ post.author.get_full_name|default:post.author.username }}</strong>
+                                <span class="text-xs text-gray-500 mr-1"> ({{ post.author.email }}) </span> • {{ post.created_at|date:"F j, Y" }}
+                            {% if post.comment_count %} •
+                                <span class="text-indigo-600 ml-1"> {{ post.comment_count }}
+                                    {% if post.comment_count == 1 %}comment{% else %}comments{% endif %}</span>
                             {% endif %}
                         </div>
                         {% if user == post.author %}

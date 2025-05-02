@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load post_filters %}
+{% load static %}
 
 {% block title %}{{ post.title }} - Uni Hub{% endblock %}
 
@@ -30,10 +31,18 @@
             </h1>
         </div>
 
-        <div class="text-sm text-gray-500 mb-2">
-            Posted by <strong>{{ post.author.get_full_name|default:post.author.username }}</strong> <span
-                class="text-xs text-gray-500">({{ post.author.email }})</span> • {{ post.created_at|date:"F j, Y" }}
-            {% if post.created_at != post.updated_at %}
+        <div class="text-sm text-gray-500 mb-2 flex items-center">
+            Posted by 
+            <span class="inline-block h-6 w-6 rounded-full overflow-hidden bg-gray-100 mx-1 ml-2 mr-2">
+                {% if post.author.profile.profile_image %}
+                    <img src="{{ post.author.profile.profile_image.url }}" alt="{{ post.author.get_full_name|default:post.author.username }}'s profile" class="h-full w-full object-cover">
+                {% else %}
+                    <img src="{% static 'img/default_pfp.svg' %}" alt="Default profile icon" class="h-full w-full object-cover">
+                {% endif %}
+            </span>
+            <strong class="mr-1">{{ post.author.get_full_name|default:post.author.username }}</strong>
+            <span class="text-xs text-gray-500 mr-1">({{ post.author.email }})</span> • {{ post.created_at|date:"F j, Y" }}
+            {% if post.created_at|is_meaningfully_edited:post.updated_at %}
             • Edited {{ post.updated_at|date:"F j, Y" }}
             {% endif %}
         </div>

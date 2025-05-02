@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load post_filters %}
+{% load static %}
 
 {% block title %}Posts tagged with #{{ tag_name }} - Uni Hub{% endblock %}
 
@@ -56,16 +57,21 @@
                     </div>
                     {% endif %}
 
-                    <div class="flex justify-between items-center text-sm text-gray-500">
-                        <div class="text-sm text-gray-500 mt-2">
-                            Posted by <strong>{{ post.author.get_full_name|default:post.author.username }}</strong>
-                            <span class="text-xs text-gray-500">({{ post.author.email }})</span> •
-                            {{ post.created_at|date:"F j, Y" }}
-                            {% if post.comments.count %}
-                            • <span class="text-indigo-600">{{ post.comments.count }}
-                                {% if post.comments.count == 1 %}comment{% else %}comments{% endif %}</span>
+                    <div class="flex items-center text-sm text-gray-500 mt-2">
+                        Posted by<span class="inline-block h-6 w-6 rounded-full overflow-hidden bg-gray-100 mx-1 ml-2 mr-2">
+                            {% if post.author.profile.profile_image %}
+                                <img src="{{ post.author.profile.profile_image.url }}" alt="{{ post.author.get_full_name|default:post.author.username }}'s profile" class="h-full w-full object-cover">
+                            {% else %}
+                                <img src="{% static 'img/default_pfp.svg' %}" alt="Default profile icon" class="h-full w-full object-cover">
                             {% endif %}
-                        </div>
+                        </span>
+                        <strong class="mr-1">{{ post.author.get_full_name|default:post.author.username }}</strong>
+                        <span class="text-xs text-gray-500">({{ post.author.email }})</span> •
+                        {{ post.created_at|date:"F j, Y" }}
+                        {% if post.comments.count %}
+                        • <span class="text-indigo-600">{{ post.comments.count }}
+                            {% if post.comments.count == 1 %}comment{% else %}comments{% endif %}</span>
+                        {% endif %}
                     </div>
                 </div>
             </a>

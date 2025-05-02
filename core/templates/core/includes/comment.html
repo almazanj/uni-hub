@@ -3,6 +3,7 @@ This template is designed to be recursive and handle any level of comment nestin
 {% endcomment %}
 
 {% load post_filters %}
+{% load static %}
 
 <div id="comment-{{ comment.id }}" class="{% if is_reply %}border-l-2 
     {% if level == 1 %}border-blue-400{% elif level == 2 %}border-purple-400{% elif level == 3 %}border-pink-400
@@ -30,13 +31,25 @@ This template is designed to be recursive and handle any level of comment nestin
 
         <div class="flex-grow">
             <div class="flex justify-between items-start mb-1">
-                <div class="font-semibold text-gray-800">
-                    {{ comment.author.get_full_name|default:comment.author.username }} <span
-                        class="text-xs text-gray-500">({{ comment.author.email }})</span>
-                    {% if comment.author == post.author %}
-                    <span class="text-xs bg-blue-600 text-white px-2 py-0.5 rounded-full ml-1">OP</span>
-                    {% endif %}
+                <div class="flex items-center">
+                    <!-- Add profile picture here -->
+                    <span class="inline-block h-6 w-6 rounded-full overflow-hidden bg-gray-100 mr-2">
+                        {% if comment.author.profile.profile_image %}
+                            <img src="{{ comment.author.profile.profile_image.url }}" alt="{{ comment.author.get_full_name|default:comment.author.username }}'s profile" class="h-full w-full object-cover">
+                        {% else %}
+                            <img src="{% static 'img/default_pfp.svg' %}" alt="Default profile icon" class="h-full w-full object-cover">
+                        {% endif %}
+                    </span>
+                    
+                    <div class="font-semibold text-gray-800">
+                        {{ comment.author.get_full_name|default:comment.author.username }} <span
+                            class="text-xs text-gray-500">({{ comment.author.email }})</span>
+                        {% if comment.author == post.author %}
+                        <span class="text-xs bg-blue-600 text-white px-2 py-0.5 rounded-full ml-1">OP</span>
+                        {% endif %}
+                    </div>
                 </div>
+                
                 <div class="text-xs text-gray-500">
                     {{ comment.created_at|date:"F j, Y, g:i a" }}
                 </div>
