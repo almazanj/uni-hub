@@ -8,6 +8,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Uni Hub{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/output.css' %}" />
+    {% block additional_head %}
+    {% endblock %}
 </head>
 
 <body class="min-h-screen flex flex-col bg-gray-50">
