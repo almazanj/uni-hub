@@ -711,17 +711,64 @@ class UserListAPIView(APIView):
 @login_required
 def search_profiles(request):
     query = request.GET.get('q', '')
-    results = []
+    tag_search = request.GET.get('tag', '')
+    results = User.objects.none()
 
     if query:
-        results = User.objects.filter(
+        basic_results = User.objects.filter(
             Q(first_name__icontains=query) |
             Q(last_name__icontains=query) |
             Q(email__icontains=query)
         ).exclude(id=request.user.id)  # hide self
+        
+        query_parts = [part.strip() for part in query.split() if part.strip()]
+        
+        if len(query_parts) > 1:
+            name_results = User.objects.none()
+            
+            # Attempt different combinations of the parts as first/last name
+            for i in range(len(query_parts)):
+                first_part = ' '.join(query_parts[:i+1])
+                if i+1 < len(query_parts):
+                    last_part = ' '.join(query_parts[i+1:])
+                    name_results = name_results | User.objects.filter(
+                        Q(first_name__icontains=first_part) & 
+                        Q(last_name__icontains=last_part)
+                    )
+            
+            # Combine results using OR operator (|)
+            results = basic_results | name_results.exclude(id=request.user.id)
+        else:
+            results = basic_results
+            
+    elif tag_search: # Search by tag
+        tag_terms = [term.strip().strip('#').lower() for term in tag_search.split() if term.strip()]
+        
+        # Start with empty query object
+        tag_query = Q(pk=None)
+        found_any_tags = False
+        # Process each tag individually
+        for term in tag_terms:
+            try:
+                # Try to find this tag in the database
+                tag = InterestTag.objects.get(name__iexact=term) # Case-insensitive match
+                
+                # Add this tag to the OR query
+                tag_query |= Q(profile__interest_tags=tag)
+                found_any_tags = True
+                
+            except InterestTag.DoesNotExist:
+                continue # This tag doesn't exist, continue to next tag
+        
+        # Only run the query if we found at least one valid tag
+        if found_any_tags:
+            results = User.objects.filter(tag_query).exclude(id=request.user.id).distinct()
+        else:
+            results = User.objects.none()
 
     return render(request, 'core/search_profiles.html', {
         'query': query,
+        'tag_search': tag_search,
         'results': results
     })
 
