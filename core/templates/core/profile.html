@@ -37,8 +37,50 @@
             </p>
         </div>
 
+        <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Program and Year -->
+            <div>
+                <h3 class="text-lg font-semibold text-gray-800 border-b-4 border-red-400">Education</h3>
+                <div class="mt-2">
+                    {% if user.profile.program %}
+                        <p class="text-gray-600">
+                            <span class="font-medium">Program:</span> {{ user.profile.program }}
+                            {% if user.profile.year %}
+                                (Year {{ user.profile.year }})
+                            {% endif %}
+                        </p>
+                    {% else %}
+                        <p class="text-gray-400 italic">No program information provided.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Location and Date of Birth -->
+            <div>
+                <h3 class="text-lg font-semibold border-b-4 border-indigo-400 text-gray-800">Personal Info</h3>
+                <div class="mt-2">
+                    <p class="text-gray-600 mb-1">
+                        <span class="font-medium">Date of Birth:</span> 
+                        {% if user.profile.dob %}
+                            {{ user.profile.dob|date:"F j, Y" }}
+                        {% else %}
+                            <span class="text-gray-400 italic">Not provided.</span>
+                        {% endif %}
+                    </p>
+                    <p class="text-gray-600">
+                        <span class="font-medium">Location:</span> 
+                        {% if user.profile.location %}
+                            {{ user.profile.location }}
+                        {% else %}
+                            <span class="text-gray-400 italic">Not provided.</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+
         <div class="mt-4">
-            <h3 class="text-lg font-semibold text-gray-800">Interests</h3>
+            <h3 class="text-lg font-semibold border-l-4 pl-2 border-green-400 text-gray-800">Interests</h3>
             <div class="mt-2 mb-6">
                 {% if user.profile.interest_tags.all %}
                     <div class="flex flex-wrap gap-2">

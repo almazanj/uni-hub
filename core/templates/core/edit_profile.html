@@ -69,6 +69,33 @@
                 <textarea name="bio" class="w-full px-4 py-2 border rounded-md">{{ profile.bio }}</textarea>
             </div>
 
+            <div class="mb-4">
+                <label for="location" class="block text-gray-700 font-medium mb-1">Location</label>
+                <input type="text" name="location" id="location" value="{{ profile.location|default:'' }}" 
+                        class="w-full px-4 py-2 border rounded-md">
+                <p class="text-sm text-gray-500 mt-1">City, state/province, country, etc.</p>
+            </div>
+
+            <div class="mb-4">
+                <label for="dob" class="block text-gray-700 font-medium mb-1">Date of Birth</label>
+                <input type="date" name="dob" id="dob" value="{{ profile.dob|date:'Y-m-d' }}" 
+                        class="w-full px-4 py-2 border rounded-md">
+            </div>
+
+            <div class="mb-4">
+                <label for="program" class="block text-gray-700 font-medium mb-1">Program</label>
+                <input type="text" name="program" id="program" value="{{ profile.program|default:'' }}" 
+                        class="w-full px-4 py-2 border rounded-md">
+                <p class="text-sm text-gray-500 mt-1">E.g., Computer Science, Engineering, Economics</p>
+            </div>
+
+            <div class="mb-4">
+                <label for="year" class="block text-gray-700 font-medium mb-1">Year</label>
+                <input type="number" name="year" id="year" value="{{ profile.year|default:'' }}" min="1" max="10" 
+                        class="w-full px-4 py-2 border rounded-md">
+                <p class="text-sm text-gray-500 mt-1">Your current year of study</p>
+            </div>
+
             <!-- Interest Tags -->
             <div class="mb-4">
                 <label class="block text-gray-700 font-medium mb-2">Interests</label>

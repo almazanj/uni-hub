@@ -31,8 +31,39 @@
             <p class="text-gray-700 mt-2">{{ profile.bio|default:"No bio provided." }}</p>
         </div>
 
+        <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Program and Year -->
+            <div>
+                <h3 class="text-lg font-semibold border-b-4 border-red-400">Education</h3>
+                <div class="mt-2">
+                    {% if profile.program %}
+                        <p class="text-gray-700">
+                            <span class="font-medium">Program:</span> {{ profile.program }}
+                            {% if profile.year %}
+                                (Year {{ profile.year }})
+                            {% endif %}
+                        </p>
+                    {% else %}
+                        <p class="text-gray-700">No program information provided.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Location -->
+            <div>
+                <h3 class="text-lg font-semibold border-b-4 border-indigo-400">Location</h3>
+                <p class="text-gray-700 mt-2">
+                    {% if profile.location %}
+                        {{ profile.location }}
+                    {% else %}
+                        Not specified
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+
         <div class="mt-4">
-            <h3 class="text-lg font-semibold">Interests</h3>
+            <h3 class="text-lg border-l-4 pl-2 border-green-400 font-semibold">Interests</h3>
             <div class="mt-2">
                 {% if profile.interest_tags.all %}
                     <div class="flex flex-wrap gap-2">

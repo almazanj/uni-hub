@@ -126,8 +126,31 @@ def edit_profile(request):
     if request.method == 'POST':
         # Handle profile update
         profile.bio = request.POST.get('bio', '')
-        profile.interests = request.POST.get('interests', '')
         profile.privacy = request.POST.get('privacy', 'public')
+        profile.location = request.POST.get('location', '')
+        
+        # Handle date of birth
+        dob_str = request.POST.get('dob', '')
+        if dob_str:
+            try:
+                profile.dob = dob_str
+            except (ValueError, TypeError):
+                messages.error(request, "Invalid date format for Date of Birth.")
+        else:
+            profile.dob = None
+            
+        profile.program = request.POST.get('program', '')
+        
+        # Handle year as integer
+        year_str = request.POST.get('year', '')
+        if year_str:
+            try:
+                profile.year = int(year_str)
+            except ValueError:
+                messages.error(request, "Year must be a number.")
+        else:
+            profile.year = None
+        
         profile.interest_tags.clear()
         
         # Check if the user wants to remove the current image

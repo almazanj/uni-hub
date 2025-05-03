@@ -90,6 +90,10 @@ class Profile(models.Model):
     privacy = models.CharField(max_length=10, choices=PRIVACY_CHOICES, default='public')
     profile_image = models.ImageField(upload_to='profile_images/', null=True, blank=True)
     interest_tags = models.ManyToManyField(InterestTag, blank=True, related_name='profiles')
+    location = models.CharField(max_length=100, blank=True, null=True)
+    dob = models.DateField(verbose_name="Date of Birth", blank=True, null=True)
+    program = models.CharField(max_length=100, blank=True, null=True)
+    year = models.PositiveSmallIntegerField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.user.first_name} {self.user.last_name}'s Profile"
