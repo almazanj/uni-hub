@@ -18,11 +18,19 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.defaults import page_not_found, permission_denied
 from drf_spectacular.views import (
     SpectacularAPIView,
     SpectacularRedocView, 
     SpectacularSwaggerView,
 )
+
+# Custom error handlers
+def custom_page_not_found(request, exception):
+    return page_not_found(request, exception, template_name='404.html')
+
+def custom_permission_denied(request, exception):
+    return permission_denied(request, exception, template_name='403.html')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -32,6 +40,10 @@ urlpatterns = [
     path('api/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('api/schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
 ]
+
+# Register custom error handlers
+handler404 = 'uni_hub.urls.custom_page_not_found'
+handler403 = 'uni_hub.urls.custom_permission_denied'
 
 # Serve media files in development
 if settings.DEBUG:

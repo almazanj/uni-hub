@@ -731,13 +731,22 @@ def public_profile_view(request, user_id):
         profile_user = User.objects.get(id=user_id)
         profile = profile_user.profile
     except User.DoesNotExist:
-        raise Http404("User not found")
+        return render(request, '404.html', {
+            'error_message': 'User Not Found',
+            'error_detail': 'The user you are looking for does not exist.'
+        }, status=404)
     except Profile.DoesNotExist:
-        raise Http404("Profile not found")
+        return render(request, '404.html', {
+            'error_message': 'Profile Not Found',
+            'error_detail': 'This user does not have a profile yet.'
+        }, status=404)
 
     # Privacy checks
     if profile.privacy == "private" and profile_user != request.user:
-        raise Http404("This profile is private.")
+        return render(request, '403.html', {
+            'error_message': 'Private Profile',
+            'error_detail': 'This profile is private and can only be viewed by the owner.'
+        }, status=403)
 
     return render(request, 'core/public_profile.html', {
         'profile_user': profile_user,
