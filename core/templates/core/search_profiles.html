@@ -22,10 +22,10 @@
         </ul>
 
         <div id="name-search-form" class="{% if tag_search %}hidden{% endif %}">
-            <form method="GET" action="{% url 'core:search_profiles' %}">
+            <form method="GET" action="{% url 'core:search_profiles' %}" id="name-search">
                 <div class="flex items-center space-x-2">
                     <input type="text" name="q" value="{{ query }}" placeholder="Search by name or email"
-                        class="flex-grow p-2 border rounded-md">
+                        class="flex-grow p-2 border rounded-md" required>
                     <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">
                         Search
                     </button>
@@ -34,10 +34,10 @@
         </div>
 
         <div id="tag-search-form" class="{% if not tag_search %}hidden{% endif %}">
-            <form method="GET" action="{% url 'core:search_profiles' %}">
+            <form method="GET" action="{% url 'core:search_profiles' %}" id="tag-search">
                 <div class="flex items-center space-x-2">
                     <input type="text" name="tag" value="{{ tag_search }}" placeholder="Enter interest here"
-                        class="flex-grow p-2 border rounded-md">
+                        class="flex-grow p-2 border rounded-md" required>
                     <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">
                         Search
                     </button>
@@ -81,18 +81,31 @@
 </div>
 
 <script>
+    const nameSearchForm = document.getElementById('name-search-form');
+    const tagSearchForm = document.getElementById('tag-search-form');
+    
     document.getElementById('name-search-tab').addEventListener('click', function() {
-        document.getElementById('name-search-form').classList.remove('hidden');
-        document.getElementById('tag-search-form').classList.add('hidden');
+        nameSearchForm.classList.remove('hidden');
+        tagSearchForm.classList.add('hidden');
         this.classList.add('border-b-2', 'border-indigo-600', 'text-indigo-600');
         document.getElementById('tag-search-tab').classList.remove('border-b-2', 'border-indigo-600', 'text-indigo-600');
+        tagSearchForm.querySelector('input').removeAttribute('required');
+        nameSearchForm.querySelector('input').setAttribute('required', '');
     });
 
     document.getElementById('tag-search-tab').addEventListener('click', function() {
-        document.getElementById('tag-search-form').classList.remove('hidden');
-        document.getElementById('name-search-form').classList.add('hidden');
+        tagSearchForm.classList.remove('hidden');
+        nameSearchForm.classList.add('hidden');
         this.classList.add('border-b-2', 'border-indigo-600', 'text-indigo-600');
         document.getElementById('name-search-tab').classList.remove('border-b-2', 'border-indigo-600', 'text-indigo-600');
+        nameSearchForm.querySelector('input').removeAttribute('required');
+        tagSearchForm.querySelector('input').setAttribute('required', '');
     });
+    
+    if (nameSearchForm.classList.contains('hidden')) {
+        nameSearchForm.querySelector('input').removeAttribute('required');
+    } else {
+        tagSearchForm.querySelector('input').removeAttribute('required');
+    }
 </script>
 {% endblock %}
