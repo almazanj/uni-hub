@@ -41,7 +41,8 @@
                 {% endif %}
             </span>
             <strong class="mr-1">{{ post.author.get_full_name|default:post.author.username }}</strong>
-            <span class="text-xs text-gray-500 mr-1">({{ post.author.email }})</span> • {{ post.created_at|date:"F j, Y" }}
+            {% if user.is_authenticated %}
+            <span class="text-xs text-gray-500 mr-1">({{ post.author.email }})</span>{% endif %} • {{ post.created_at|date:"F j, Y" }}
             {% if post.created_at|is_meaningfully_edited:post.updated_at %}
             • Edited {{ post.updated_at|date:"F j, Y" }}
             {% endif %}

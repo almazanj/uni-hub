@@ -456,6 +456,24 @@ class LeaveCommunityView(LoginRequiredMixin, DetailView):
         
         return redirect('core:community_detail', slug=community.slug)
 
+class CommunityMembersView(LoginRequiredMixin, DetailView):
+    model = Community
+    template_name = 'core/community_members.html'
+    context_object_name = 'community'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Get all members ordered by leader first, then alphabetically by name
+        members = list(self.object.members.all())
+        
+        # Put the leader at the beginning of the list if there is one
+        if self.object.leader in members:
+            members.remove(self.object.leader)
+            members.insert(0, self.object.leader)
+        
+        context['members'] = members
+        return context
+
 # Post Views
 class PostDetailView(DetailView):
     model = Post

@@ -30,7 +30,7 @@
               {% if user_communities %}
               <div class="space-y-2 mt-2 mb-4">
                 {% for community in user_communities %}
-                <div class="bg-gray-50 p-3 rounded-lg flex items-center justify-between">
+                <div class="bg-gray-50 border border-gray-200 p-3 rounded-lg flex items-center justify-between">
                   <div>
                     <a href="{% url 'core:community_detail' community.slug %}"
                       class="font-medium text-indigo-600 hover:text-indigo-800">

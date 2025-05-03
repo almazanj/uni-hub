@@ -12,7 +12,13 @@
                 <h1 class="text-2xl font-bold text-gray-900 mb-2">{{ community.name }}</h1>
                 <p class="text-gray-600 mb-2">{{ community.description }}</p>
                 <p class="text-sm text-gray-500 flex items-center flex-wrap">
-                    <span>{{ community.members.count }} members •</span>
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'core:community_members' community.slug %}" class="hover:text-indigo-600 hover:underline">
+                        <span class="mr-1">{{ community.members.count }} members</span>
+                    </a>
+                    {% else %}
+                    <span class="mr-1">{{ community.members.count }} members</span>
+                    {% endif %} •
                     <span class="ml-1">Created {{ community.created_at|date:"F j, Y" }} •</span>
                     {% if community.leader %}
                     <span class="font-medium flex items-center ml-1">Leader:
@@ -24,7 +30,9 @@
                             {% endif %}
                         </span>
                         <strong class="mr-1">{{ community.leader.get_full_name|default:community.leader.username }}</strong>
+                        {% if user.is_authenticated %}
                         <span class="text-xs text-gray-500">({{ community.leader.email }})</span>
+                        {% endif %}
                     </span>
                     {% else %}
                     <span class="font-medium text-red-600 ml-1">Unclaimed</span>
@@ -107,7 +115,8 @@
                                     <img src="{% static 'img/default_pfp.svg' %}" alt="Default profile icon" class="h-full w-full object-cover">
                                 {% endif %}
                             </span><strong class="mr-1">{{ post.author.get_full_name|default:post.author.username }}</strong>
-                                <span class="text-xs text-gray-500 mr-1"> ({{ post.author.email }}) </span> • {{ post.created_at|date:"F j, Y" }}
+                            {% if user.is_authenticated %}
+                                <span class="text-xs text-gray-500 mr-1"> ({{ post.author.email }}) {% endif%} </span> • {{ post.created_at|date:"F j, Y" }}
                             {% if post.comment_count %} •
                                 <span class="text-indigo-600 ml-1"> {{ post.comment_count }}
                                     {% if post.comment_count == 1 %}comment{% else %}comments{% endif %}</span>
