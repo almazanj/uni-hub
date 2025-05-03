@@ -5,6 +5,7 @@ from django.conf import settings
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.text import slugify
+import re
 
 class UserManager(BaseUserManager):
     """
@@ -55,6 +56,27 @@ class User(AbstractUser):
     def __str__(self):
         return self.email
     
+class InterestTag(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
+
+    def save(self, *args, **kwargs):
+        # Strip whitespace
+        self.name = self.name.strip()
+        # Remove hash if there's any
+        self.name = self.name.strip('#')
+        # Don't allow empty tags
+        if not self.name:
+            raise ValueError("Tag cannot be empty")
+        # Remove spaces
+        self.name = self.name.replace(' ', '')
+        # Convert to lowercase for case-insensitive comparison
+        self.name = self.name.lower()
+        super().save(*args, **kwargs)
+
 class Profile(models.Model):
     PRIVACY_CHOICES = [
         ('public', 'Public - Everyone can see your profile'),
@@ -68,6 +90,7 @@ class Profile(models.Model):
     course = models.CharField(max_length=100, blank=True)
     privacy = models.CharField(max_length=10, choices=PRIVACY_CHOICES, default='public')
     profile_image = models.ImageField(upload_to='profile_images/', null=True, blank=True)
+    interest_tags = models.ManyToManyField(InterestTag, blank=True, related_name='profiles')
 
     def __str__(self):
         return f"{self.user.first_name} {self.user.last_name}'s Profile"
@@ -174,7 +197,6 @@ class Post(models.Model):
         self.tags.clear()
         
         # Find all hashtags in the content using regex
-        import re
         hashtags = re.findall(r'#([\w-]+)', self.content)
         
         # Add unique hashtags

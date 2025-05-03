@@ -28,7 +28,7 @@
 
         <div class="mt-6">
             <h3 class="text-lg font-semibold text-gray-800">Bio</h3>
-            <p class="text-gray-600 mt-2">
+            <p class="text-gray-600 mt-2 break-words">
                 {% if user.profile.bio %}
                 {{ user.profile.bio }}
                 {% else %}
@@ -39,13 +39,19 @@
 
         <div class="mt-4">
             <h3 class="text-lg font-semibold text-gray-800">Interests</h3>
-            <p class="text-gray-600 mt-2 mb-6">
-                {% if user.profile.interests %}
-                {{ user.profile.interests }}
+            <div class="mt-2 mb-6">
+                {% if user.profile.interest_tags.all %}
+                    <div class="flex flex-wrap gap-2">
+                        {% for tag in user.profile.interest_tags.all %}
+                            <span class="inline-block bg-indigo-100 text-indigo-800 text-sm px-3 py-1 rounded-full">
+                                {{ tag.name }}
+                            </span>
+                        {% endfor %}
+                    </div>
                 {% else %}
-                <span class="text-gray-400 italic">No interests listed.</span>
+                    <span class="text-gray-400 italic">No interests listed.</span>
                 {% endif %}
-            </p>
+            </div>
         </div>
 
         <div class="mt-4">

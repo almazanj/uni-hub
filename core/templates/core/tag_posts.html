@@ -66,10 +66,10 @@
                             {% endif %}
                         </span>
                         <strong class="mr-1">{{ post.author.get_full_name|default:post.author.username }}</strong>
-                        <span class="text-xs text-gray-500">({{ post.author.email }})</span> •
+                        <span class="text-xs text-gray-500 mr-1">({{ post.author.email }})</span> •
                         {{ post.created_at|date:"F j, Y" }}
                         {% if post.comments.count %}
-                        • <span class="text-indigo-600">{{ post.comments.count }}
+                        • <span class="text-indigo-600 ml-1">{{ post.comments.count }}
                             {% if post.comments.count == 1 %}comment{% else %}comments{% endif %}</span>
                         {% endif %}
                     </div>

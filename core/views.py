@@ -18,7 +18,7 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 import sys
 
 # Models
-from .models import User, Profile, Community, Notification, Event, Post, Comment, Tag
+from .models import User, Profile, Community, Notification, Event, Post, Comment, Tag, InterestTag
 
 # Forms
 from .forms import (
@@ -128,6 +128,15 @@ def edit_profile(request):
         profile.bio = request.POST.get('bio', '')
         profile.interests = request.POST.get('interests', '')
         profile.privacy = request.POST.get('privacy', 'public')
+        profile.interest_tags.clear()
+        
+        # Check if the user wants to remove the current image
+        if 'remove_image' in request.POST:
+            if profile.profile_image:
+                # Delete the file if it exists
+                if os.path.isfile(profile.profile_image.path):
+                    os.remove(profile.profile_image.path)
+                profile.profile_image = None
         
         # Handle profile image upload
         if 'profile_image' in request.FILES:
@@ -209,18 +218,36 @@ def edit_profile(request):
                 messages.error(request, f"Invalid image file: {str(e)}")
                 return render(request, 'core/edit_profile.html', {'profile': profile})
         
-        # Check if the user wants to remove the current image
-        if 'remove_image' in request.POST:
-            if profile.profile_image:
-                # Delete the file if it exists
-                if os.path.isfile(profile.profile_image.path):
-                    os.remove(profile.profile_image.path)
-                profile.profile_image = None
-        
+        # Only process tags if they're in the POST data
+        if 'interest_tags' in request.POST:
+            # Get all tags from the form
+            tag_names = request.POST.getlist('interest_tags')
+            
+            # Pre-process all tag names to normalize them and remove duplicates
+            normalized_tag_names = set()
+            for tag_name in tag_names:
+                # Apply the same normalization logic as in the InterestTag model
+                tag_name = tag_name.strip().strip('#').replace(' ', '').lower()
+                if tag_name:  # Skip empty tags
+                    normalized_tag_names.add(tag_name)
+            
+            # Now process the unique normalized tags
+            for tag_name in normalized_tag_names:
+                try:
+                    # First try to get an existing tag
+                    tag = InterestTag.objects.get(name=tag_name)
+                except InterestTag.DoesNotExist:
+                    # If it doesn't exist, create a new one
+                    tag = InterestTag(name=tag_name)
+                    tag.save()
+                
+                # Add the tag to the profile
+                profile.interest_tags.add(tag)
+                
         profile.save()
         messages.success(request, "Profile updated successfully.")
         return redirect('core:profile')
-    
+
     return render(request, 'core/edit_profile.html', {'profile': profile})
 
 @login_required
