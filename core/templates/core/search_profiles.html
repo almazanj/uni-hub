@@ -73,10 +73,13 @@
                 </li>
             {% endfor %}
         </ul>
+        <p class="text-gray-500 italic">Search results excludes your own profile</p>
     {% elif query %}
-        <p>No users found matching "{{ query }}".</p>
+        <p>No users found matching "{{ query }}"</p>
+        <p class="text-gray-500 italic">Search results excludes your own profile</p>
     {% elif tag_search %}
-        <p>No users found with interest in "{{ tag_search }}".</p>
+        <p>No users found with interest in "{{ tag_search }}"</p>
+        <p class="text-gray-500 italic">Search results excludes your own profile</p>
     {% endif %}
 </div>
 
