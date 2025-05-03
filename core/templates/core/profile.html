@@ -61,8 +61,6 @@
                     <span class="text-green-600">Public – anyone can view your profile.</span>
                 {% elif user.profile.privacy == 'private' %}
                     <span class="text-red-600">Private – only you can view your profile.</span>
-                {% elif user.profile.privacy == 'friends' %}
-                    <span class="text-yellow-600">Friends Only – only approved users can see your profile.</span>
                 {% else %}
                     <span class="text-gray-400 italic">Privacy not set.</span>
                 {% endif %}

@@ -1,4 +1,6 @@
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.utils.translation import gettext_lazy as _
 from django.conf import settings
@@ -81,13 +83,10 @@ class Profile(models.Model):
     PRIVACY_CHOICES = [
         ('public', 'Public - Everyone can see your profile'),
         ('private', 'Private - Only you can view your profile'),
-        ('friends', 'Friends Only - Only your friends can see your profile'),
     ]
 
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     bio = models.TextField(blank=True)
-    university = models.CharField(max_length=100, blank=True)
-    course = models.CharField(max_length=100, blank=True)
     privacy = models.CharField(max_length=10, choices=PRIVACY_CHOICES, default='public')
     profile_image = models.ImageField(upload_to='profile_images/', null=True, blank=True)
     interest_tags = models.ManyToManyField(InterestTag, blank=True, related_name='profiles')
@@ -95,6 +94,15 @@ class Profile(models.Model):
     def __str__(self):
         return f"{self.user.first_name} {self.user.last_name}'s Profile"
     
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        Profile.objects.create(user=instance, privacy='public')
+
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+    instance.profile.save()
+
 class Community(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField()
