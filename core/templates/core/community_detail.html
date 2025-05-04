@@ -7,10 +7,29 @@
 {% block content %}
 <div class="container mx-auto px-4 py-8">
     <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-        <div class="flex justify-between items-start">
-            <div>
-                <h1 class="text-2xl font-bold text-gray-900 mb-2">{{ community.name }}</h1>
-                <p class="text-gray-600 mb-2">{{ community.description }}</p>
+        <!-- Community content section -->
+        <div class="flex flex-col">
+            <div class="mb-4">
+                <h1 class="text-2xl font-bold text-gray-900 mb-2 break-words">{{ community.name }}</h1>
+
+
+                <!-- Display topic tags -->
+                <div class="flex flex-row">
+                    <div class="mb-3 w-3/4 overflow-hidden pr-4">
+                        <p class="text-gray-600 whitespace-pre-wrap break-words">{{ community.description }}</p>
+                    </div>
+                    {% if community.topic_tags.all %}
+                    <div class="mb-3 ml-3 p-2 border rounded-md w-1/4 min-w-[270px] h-fit shrink-0">
+                        <p class="text-sm font-semibold text-gray-600 mb-1">Topics</p>
+                        <div class="flex flex-wrap gap-2">
+                            {% for tag in community.topic_tags.all %}
+                            <span class="bg-purple-200 text-purple-800 text-xs px-2 py-1 rounded-full">{{ tag.name }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                
                 <p class="text-sm text-gray-500 flex items-center flex-wrap">
                     {% if user.is_authenticated %}
                     <a href="{% url 'core:community_members' community.slug %}" class="hover:text-indigo-600 hover:underline">
@@ -39,24 +58,32 @@
                     {% endif %}
                 </p>
             </div>
+
+            <!-- Action buttons -->
             {% if user.is_authenticated %}
-            {% if is_member %}
-            <div class="flex space-x-2">
+            <div class="flex flex-wrap gap-2 justify-end border-t pt-4">
+                {% if is_member %}
                 <a href="{% url 'core:post_create' community.slug %}"
-                    class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+                    class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 text-center">
                     New Post
                 </a>
+                {% if user == community.leader %}
+                <a href="{% url 'core:community_update' community.slug %}"
+                    class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 text-center">
+                    Edit Community
+                </a>
+                {% endif %}
                 <a href="{% url 'core:leave_community' community.slug %}"
-                    class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">
+                    class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 text-center">
                     Leave Community
                 </a>
+                {% else %}
+                <a href="{% url 'core:join_community' community.slug %}"
+                    class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 text-center">
+                    Join Community
+                </a>
+                {% endif %}
             </div>
-            {% else %}
-            <a href="{% url 'core:join_community' community.slug %}"
-                class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
-                Join Community
-            </a>
-            {% endif %}
             {% endif %}
         </div>
     </div>

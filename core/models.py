@@ -108,13 +108,14 @@ def save_user_profile(sender, instance, **kwargs):
     instance.profile.save()
 
 class Community(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, unique=True)
     description = models.TextField()
     slug = models.SlugField(unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_communities')
     members = models.ManyToManyField(User, related_name='communities')
     leader = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='led_communities', null=True)
+    topic_tags = models.ManyToManyField(InterestTag, blank=True, related_name='communities')
     
     class Meta:
         verbose_name_plural = "Communities"

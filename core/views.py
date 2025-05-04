@@ -370,9 +370,6 @@ class CommunityCreateView(LoginRequiredMixin, CreateView):
     template_name = 'core/community_form.html'
     
     def post(self, request, *args, **kwargs):
-        # Print what's in the post data
-        print(f"POST data: {request.POST}")
-        
         # Check if a community with the same name already exists
         community_name = request.POST.get('name')
         if community_name:
@@ -391,20 +388,91 @@ class CommunityCreateView(LoginRequiredMixin, CreateView):
         return self.render_to_response(self.get_context_data(form=form))
     
     def form_valid(self, form):
-        # Make sure to set the created_by field before saving
-        form.instance.created_by = self.request.user
-        # Set the slug field based on the name
-        form.instance.slug = slugify(form.instance.name)
-        # Set the leader as the creator
-        form.instance.leader = self.request.user
+        community = form.save(commit=False)
+        community.created_by = self.request.user
+        community.save()
         
-        # Now let the form save
-        response = super().form_valid(form)
+        # Add creator as member and leader
+        community.members.add(self.request.user)
+        community.leader = self.request.user
         
-        # Add the current user to members
-        self.object.members.add(self.request.user)
+        # Process topic tags
+        if 'topic_tags' in self.request.POST:
+            tag_names = self.request.POST.getlist('topic_tags')
+            
+            # Pre-process all tag names to normalize them and remove duplicates
+            normalized_tag_names = set()
+            for tag_name in tag_names:
+                # Apply the same normalization logic as in the InterestTag model
+                tag_name = tag_name.strip().strip('#').replace(' ', '').lower()
+                if tag_name:  # Skip empty tags
+                    normalized_tag_names.add(tag_name)
+            
+            # Now process the unique normalized tags
+            for tag_name in normalized_tag_names:
+                try:
+                    # First try to get an existing tag
+                    tag = InterestTag.objects.get(name=tag_name)
+                except InterestTag.DoesNotExist:
+                    # If it doesn't exist, create a new one
+                    tag = InterestTag(name=tag_name)
+                    tag.save()
+                
+                # Add the tag to the community
+                community.topic_tags.add(tag)
         
-        return response
+        community.save()
+        return super(CommunityCreateView, self).form_valid(form)
+    
+    def get_success_url(self):
+        return reverse_lazy('core:community_detail', kwargs={'slug': self.object.slug})
+
+class CommunityUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = Community
+    form_class = CommunityForm
+    template_name = 'core/community_form.html'
+    context_object_name = 'community'
+    
+    def test_func(self):
+        community = self.get_object()
+        return self.request.user == community.leader
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        return context
+    
+    def form_valid(self, form):
+        community = form.save()
+        
+        # Process topic tags
+        community.topic_tags.clear()
+        if 'topic_tags' in self.request.POST:
+            tag_names = self.request.POST.getlist('topic_tags')
+            
+            # Pre-process all tag names to normalize them and remove duplicates
+            normalized_tag_names = set()
+            for tag_name in tag_names:
+                # Apply the same normalization logic as in the InterestTag model
+                tag_name = tag_name.strip().strip('#').replace(' ', '').lower()
+                if tag_name:  # Skip empty tags
+                    normalized_tag_names.add(tag_name)
+            
+            # Process the unique normalized tags
+            for tag_name in normalized_tag_names:
+                try:
+                    tag = InterestTag.objects.get(name=tag_name)
+                except InterestTag.DoesNotExist:
+                    tag = InterestTag(name=tag_name)
+                    tag.save()
+                
+                # Add the tag to the community
+                community.topic_tags.add(tag)
+        
+        messages.success(self.request, "Community updated successfully.")
+        return super().form_valid(form)
+    
+    def get_success_url(self):
+        return reverse_lazy('core:community_detail', kwargs={'slug': self.object.slug})
 
 class JoinCommunityView(LoginRequiredMixin, DetailView):
     model = Community

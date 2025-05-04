@@ -1,11 +1,11 @@
 {% extends 'base.html' %}
 
-{% block title %}Create Community - Uni Hub{% endblock %}
+{% block title %}{% if community %}Edit Community{% else %}Create Community{% endif %} - Uni Hub{% endblock %}
 
 {% block content %}
 <div class="container mx-auto px-4 py-8 max-w-2xl">
     <div class="bg-white rounded-lg shadow-md p-6">
-        <h1 class="text-2xl font-bold text-gray-900 mb-6">Create Community</h1>
+        <h1 class="text-2xl font-bold text-gray-900 mb-6">{% if community %}Edit Community{% else %}Create Community{% endif %}</h1>
 
         <form method="post">
             {% csrf_token %}
@@ -27,22 +27,162 @@
                     Description
                 </label>
                 <textarea name="{{ form.description.html_name }}" id="{{ form.description.id_for_label }}" rows="3"
-                    class="block w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">{{ form.description.value|default:'' }}</textarea>
+                    class="block h-[250px] w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">{{ form.description.value|default:'' }}</textarea>
                 {% if form.description.errors %}
                 <p class="text-red-500 text-xs mt-1">{{ form.description.errors.0 }}</p>
                 {% endif %}
             </div>
+            
+            <!-- Topic Tags -->
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Topics</label>
+                <div id="tags-container" class="flex flex-wrap gap-2 mb-2">
+                    {% if community.topic_tags.all %}
+                        {% for tag in community.topic_tags.all %}
+                            <span class="tag-badge bg-purple-200 text-purple-800 px-2 py-1 rounded-full flex items-center">
+                                {{ tag.name }}
+                                <button type="button" class="remove-tag ml-1 text-indigo-600 hover:text-indigo-800">×</button>
+                                <input type="hidden" name="topic_tags" value="{{ tag.name }}">
+                            </span>
+                        {% endfor %}
+                    {% endif %}
+                    <div class="relative flex-grow">
+                        <input type="text" id="tag-input" class="w-full px-2 py-1 outline-none border rounded-md" 
+                                placeholder="Enter topic here">
+                    </div>
+                </div>
+                <p class="text-sm text-gray-500 mt-1">
+                    Type a topic and press Enter or Space to add it. Click × to remove. <span id="tag-limit-text" class="hidden">Max 50 characters.</span>
+                </p>
+            </div>
 
             <div class="flex justify-between">
+                {% if community %}
+                <a href="{% url 'core:community_detail' slug=community.slug %}"
+                    class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">
+                    Cancel
+                </a>
+                {% else %}
                 <a href="{% url 'core:community_list' %}"
                     class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">
                     Cancel
                 </a>
+                {% endif %}
                 <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
-                    Create Community
+                    {% if community %}Update Community{% else %}Create Community{% endif %}
                 </button>
             </div>
         </form>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Tags input functionality
+        const tagsContainer = document.getElementById('tags-container');
+        const tagInput = document.getElementById('tag-input');
+        const tagLimitText = document.getElementById('tag-limit-text');
+        const MAX_TAG_LENGTH = 50;
+        let isTagValid = true;
+        
+        // Create a set to track existing tags (case insensitive)
+        const existingTagsSet = new Set(
+            Array.from(tagsContainer.getElementsByClassName('tag-badge'))
+                .map(badge => badge.innerText.replace('×', '').trim().toLowerCase())
+        );
+
+        // Add input event listener to check character count in real-time
+        tagInput.addEventListener('input', function() {
+            const inputLength = this.value.trim().length;
+            
+            if (inputLength > MAX_TAG_LENGTH) {
+                // Tag is too long, show error styling
+                tagInput.classList.add('border-red-500', 'bg-red-50', 'text-red-900');
+                tagLimitText.classList.remove('hidden');
+                tagLimitText.classList.add('text-red-600', 'font-medium');
+                isTagValid = false;
+            } else {
+                // Tag is valid, remove error styling
+                tagInput.classList.remove('border-red-500', 'bg-red-50', 'text-red-900');
+                tagLimitText.classList.add('hidden');
+                isTagValid = true;
+            }
+        });
+
+        // Add event listener for the input field
+        tagInput.addEventListener('keydown', function(e) {
+            if ((e.key === 'Enter' || e.key === ' ') && this.value.trim()) {
+                // Only proceed if the tag is valid (less than or equal to MAX_TAG_LENGTH)
+                if (!isTagValid) {
+                    e.preventDefault();
+                    return;
+                }
+                
+                e.preventDefault();
+                let tagValue = this.value.trim();
+                
+                // Remove hashtags and spaces
+                tagValue = tagValue.replace(/#/g, '').replace(/\s+/g, '');
+                
+                // Don't allow empty tags
+                if (!tagValue) {
+                    this.value = '';
+                    return;
+                }
+                
+                // Check if tag already exists (case insensitive)
+                const normalizedTag = tagValue.toLowerCase();
+                
+                if (!existingTagsSet.has(normalizedTag)) {
+                    // Add to both the DOM and our tracking set
+                    addTag(tagValue);
+                    existingTagsSet.add(normalizedTag);
+                }
+                
+                this.value = '';
+                // Reset validation state after adding tag
+                tagInput.classList.remove('border-red-500', 'bg-red-50', 'text-red-900');
+                tagLimitText.classList.add('text-gray-500');
+                tagLimitText.classList.remove('text-red-600', 'font-medium');
+                isTagValid = true;
+            }
+        });
+        
+        // Function to add a new tag
+        function addTag(tagValue) {
+            const tagBadge = document.createElement('span');
+            tagBadge.className = 'tag-badge bg-purple-200 text-purple-800 px-3 py-1 rounded-full flex items-center';
+            
+            // Create text node with the tag value in lowercase
+            const displayValue = tagValue.toLowerCase();
+            const tagText = document.createTextNode(displayValue);
+            tagBadge.appendChild(tagText);
+            
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'remove-tag ml-1 text-indigo-600 hover:text-indigo-800';
+            removeBtn.textContent = '×';
+            
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'topic_tags';
+            hiddenInput.value = tagValue;
+            
+            tagBadge.appendChild(removeBtn);
+            tagBadge.appendChild(hiddenInput);
+            
+            tagsContainer.insertBefore(tagBadge, tagInput.parentNode);
+        }
+
+        // Update the remove button handler to maintain the set
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('remove-tag')) {
+                const badge = e.target.closest('.tag-badge');
+                const tagText = badge.innerText.replace('×', '').trim().toLowerCase();
+                existingTagsSet.delete(tagText);
+                badge.remove();
+            }
+        });
+    });
+</script>
 {% endblock %}
