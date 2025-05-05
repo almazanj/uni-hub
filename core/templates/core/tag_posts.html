@@ -37,7 +37,8 @@
                         </h3>
                         <span class="text-sm text-gray-600">in {{ post.community.name }}</span>
                     </div>
-                    <p class="text-gray-800 line-clamp-2 mb-3">
+                                        
+                    <p class="text-gray-800 line-clamp-2 mb-3 post-content" data-post-id="{{ post.id }}">
                         {% if post.visibility == 'members' and not post.is_member %}
                         <span class="text-gray-500 italic">This post is only visible to community members</span>
                         {% else %}
@@ -45,12 +46,15 @@
                         {% endif %}
                     </p>
 
+                    <!-- links container -->
+                    <div class="links-container flex-wrap gap-2 mb-2 mt-1 hidden" data-post-id="{{ post.id }}"></div>
+
                     <!-- Display tags -->
                     {% if post.tags.all %}
                     <div class="mb-1">
                         {% for tag in post.tags.all %}
                         <a href="{% url 'core:tag_posts' tag.name %}"
-                            class="inline-block bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded-full mr-1">
+                            class="inline-block bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded-full mr-1 hover:bg-indigo-200">
                             #{{ tag.name }}
                         </a>
                         {% endfor %}
@@ -84,4 +88,68 @@
         {% endif %}
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        function displayImgurLinks() {
+            const postContents = document.querySelectorAll('.post-content');
+            
+            postContents.forEach(contentDiv => {
+                const postId = contentDiv.getAttribute('data-post-id');
+                const imgurLinksContainer = document.querySelector(`.links-container[data-post-id="${postId}"]`);
+                if (!contentDiv || !imgurLinksContainer) return;
+                
+                // Get the original content text
+                let contentText = contentDiv.innerHTML;
+                
+                // Find all Imgur links using regex
+                const imgurRegex = /https?:\/\/(?:i\.)?imgur\.com\/[a-zA-Z0-9]+(?:\.[a-zA-Z0-9]+)?/g;
+                const matches = contentText.match(imgurRegex);
+                
+                if (matches && matches.length > 0) {
+                    // Filter out album links
+                    const imgurLinks = matches.filter(url => !url.includes('/a/') && !url.includes('/gallery/'));
+                    
+                    if (imgurLinks.length > 0) {
+                        imgurLinks.forEach(url => {
+                            // Create stylish link element
+                            const linkContainer = document.createElement('a');
+                            linkContainer.href = url;
+                            linkContainer.target = "_blank";
+                            linkContainer.rel = "nofollow";
+                            linkContainer.classList.add(
+                                'flex', 'items-center', 'px-2', 'py-1', 
+                                'bg-gradient-to-r', 'from-indigo-100', 'to-purple-100', 
+                                'text-indigo-800', 'rounded-md', 'shadow-sm', 
+                                'hover:shadow', 'transition', 'duration-200', 'group'
+                            );
+                            linkContainer.innerHTML = `
+                                <svg class="h-3 w-3 mr-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clip-rule="evenodd"></path>
+                                </svg>
+                                <span class="text-xs font-medium truncate max-w-[150px] md:max-w-[250px]">${url}</span>
+                            `;
+                            
+                            // Add to the container
+                            imgurLinksContainer.appendChild(linkContainer);
+                            
+                            // Remove the URL from content text and escape special chars for regex
+                            const escapedUrl = url.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+                            const urlRegex = new RegExp(escapedUrl, 'g');
+                            contentText = contentText.replace(urlRegex, '');
+                        });
+                        // Show the container if links were found
+                        imgurLinksContainer.classList.remove('hidden');
+                        imgurLinksContainer.classList.add('flex');
+                        // Update the content with links removed
+                        contentDiv.innerHTML = contentText;
+                    }
+                }
+            });
+        }
+        
+        // Run the extraction function
+        displayImgurLinks();
+    });
+</script>
 {% endblock %}

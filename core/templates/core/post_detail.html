@@ -86,7 +86,7 @@
             </div>
             {% else %}
             <!-- Autoformatting with Beautify seems to break this line for django-->
-            <div class="whitespace-pre-wrap text-base leading-relaxed break-all md:break-words overflow-hidden">{{ post.content|hide_hashtags|urlize }}</div>
+            <div class="whitespace-pre-wrap text-base leading-relaxed break-all md:break-words overflow-hidden">{{ post.content|hide_hashtags|trim_whitespace|urlize }}</div>
             {% endif %}
         </div>
 
@@ -185,6 +185,60 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
+        // Handle Imgur embedding in post content
+        function embedImgurImages() {
+            const contentDiv = document.querySelector('.whitespace-pre-wrap.text-base');
+            if (!contentDiv) return;
+            
+            // Image size configuration
+            const imgHeight = '20rem';
+            const imgWidth = 'auto';
+            
+            // Find all links in the content
+            const links = contentDiv.querySelectorAll('a');
+            links.forEach(link => {
+                const url = link.href;
+                // Check if it's an Imgur link
+                if (url.match(/https?:\/\/(?:i\.)?imgur\.com\/[a-zA-Z0-9]+(?:\.[a-zA-Z0-9]+)?/)) {
+                    // Skip if the link already contains an image
+                    if (link.querySelector('img')) return;
+                    
+                    // Skip if inside another anchor tag
+                    if (link.parentElement.tagName === 'A') return;
+                    
+                    // Get the image ID
+                    let imgId = url.split('/').pop();
+                    
+                    // Strip file extension if present
+                    if (imgId.includes('.')) {
+                        imgId = imgId.split('.')[0];
+                    }
+                    
+                    // Skip albums
+                    if (url.includes('/a/') || url.includes('/gallery/')) return;
+                    
+                    // Create image element
+                    const img = document.createElement('img');
+                    img.src = `https://i.imgur.com/${imgId}.jpg`;
+                    img.alt = `Imgur Image ${imgId}`;
+                    img.loading = 'lazy';
+                    img.style.maxHeight = imgHeight;
+                    img.style.maxWidth = '100%';
+                    img.style.width = imgWidth;
+                    img.style.objectFit = 'contain';
+                    img.classList.add('mt-2');
+                    
+                    // Clear the link and add the image
+                    link.innerHTML = '';
+                    link.appendChild(img);
+                    link.setAttribute('rel', 'nofollow');
+                }
+            });
+        }
+        
+        // Call the function to embed images
+        embedImgurImages();
+
         // Universal reply button handler for any level of nesting
         document.addEventListener('click', function (event) {
             if (event.target.classList.contains('reply-button')) {

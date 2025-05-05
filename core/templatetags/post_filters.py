@@ -31,3 +31,17 @@ def is_meaningfully_edited(created_at, updated_at):
     """
     time_difference = updated_at - created_at
     return time_difference.total_seconds() > 2 
+
+@register.filter
+def trim_whitespace(text):
+    """Normalize whitespace while preserving intentional line breaks"""
+    if not text:
+        return text
+        
+    # Replace multiple consecutive newlines with just two newlines
+    text = re.sub(r'\n{3,}', '\n\n', text)
+    
+    # Trim leading and trailing whitespace
+    text = text.strip()
+    
+    return text
