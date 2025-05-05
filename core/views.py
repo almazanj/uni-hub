@@ -881,6 +881,50 @@ def search_profiles(request):
         'results': results
     })
 
+# Unlike profile search, which might contain a heap of personal data, community search is more general
+# So we don't need to check for user authentication here.
+def search_communities(request):
+    query = request.GET.get('q', '')
+    tag_search = request.GET.get('tag', '')
+    results = Community.objects.none()
+
+    if query:
+        results = Community.objects.filter(
+            Q(name__icontains=query) |
+            Q(description__icontains=query)
+        )
+        
+    elif tag_search: # Search by topic tag
+        tag_terms = [term.strip().strip('#').lower() for term in tag_search.split() if term.strip()]
+        
+        # Start with empty query object
+        tag_query = Q(pk=None)
+        found_any_tags = False
+        # Process each tag individually
+        for term in tag_terms:
+            try:
+                # Try to find this tag in the database
+                tag = InterestTag.objects.get(name__iexact=term) # Case-insensitive match
+                
+                # Add this tag to the OR query
+                tag_query |= Q(topic_tags=tag)
+                found_any_tags = True
+                
+            except InterestTag.DoesNotExist:
+                continue # This tag doesn't exist, continue to next tag
+        
+        # Only run the query if we found at least one valid tag
+        if found_any_tags:
+            results = Community.objects.filter(tag_query).distinct()
+        else:
+            results = Community.objects.none()
+
+    return render(request, 'core/search_communities.html', {
+        'query': query,
+        'tag_search': tag_search,
+        'results': results
+    })
+
 @login_required
 def public_profile_view(request, user_id):
     try:

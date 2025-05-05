@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Search Communities{% endblock %}
+
+{% block content %}
+<div class="container mx-auto max-w-3xl p-6">
+    <h2 class="text-2xl font-bold mb-4 text-center">Search Communities</h2>
+
+    <div class="mb-6">
+        <ul class="flex space-x-4 mb-4 border-b">
+            <li>
+                <button id="name-search-tab" class="py-2 px-4 font-medium {% if not tag_search %}border-b-2 border-indigo-600 text-indigo-600{% endif %}">
+                    Search by Name
+                </button>
+            </li>
+            <li>
+                <button id="tag-search-tab" class="py-2 px-4 font-medium {% if tag_search %}border-b-2 border-indigo-600 text-indigo-600{% endif %}">
+                    Search by Topic
+                </button>
+            </li>
+        </ul>
+
+        <div id="name-search-form" class="{% if tag_search %}hidden{% endif %}">
+            <form method="GET" action="{% url 'core:search_communities' %}" id="name-search">
+                <div class="flex items-center space-x-2">
+                    <input type="text" name="q" value="{{ query }}" placeholder="Search communities by name"
+                        class="flex-grow p-2 border rounded-md" required>
+                    <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">
+                        Search
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div id="tag-search-form" class="{% if not tag_search %}hidden{% endif %}">
+            <form method="GET" action="{% url 'core:search_communities' %}" id="tag-search">
+                <div class="flex items-center space-x-2">
+                    <input type="text" name="tag" value="{{ tag_search }}" placeholder="Enter topic here"
+                        class="flex-grow p-2 border rounded-md" required>
+                    <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">
+                        Search
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if results %}
+        <h3 class="text-xl font-semibold mb-3">
+            {% if tag_search %}
+                Communities with topic "{{ tag_search }}"
+            {% else %}
+                Search results for "{{ query }}"
+            {% endif %}
+        </h3>
+        <ul>
+            {% for community in results %}
+                <li class="mb-2 p-3 bg-white shadow border rounded-md hover:bg-gray-50">
+                    <a href="{% url 'core:community_detail' community.slug %}" class="flex items-center">
+                        <div>
+                            <div class="text-indigo-600 font-medium">
+                                {{ community.name }}
+                                <span class="text-xs text-gray-500 font-normal ml-1">
+                                    ({{ community.members.count }} {% if community.members.count == 1 %}member{% else %}members{% endif %})
+                                </span>
+                            </div>
+                            <div class="text-gray-500 text-sm">{{ community.description|truncatechars:60 }}</div>
+                            {% if community.topic_tags.all %}
+                                <div class="flex flex-wrap mt-1">
+                                    {% for tag in community.topic_tags.all|slice:":3" %}
+                                        <span class="text-xs bg-indigo-100 text-indigo-800 mr-1 px-2 py-1 rounded-full">
+                                            {{ tag.name }}
+                                        </span>
+                                    {% endfor %}
+                                    {% if community.topic_tags.count > 3 %}
+                                        <span class="text-xs text-gray-500">+{{ community.topic_tags.count|add:"-3" }} more</span>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% elif query %}
+        <p>No communities found matching "{{ query }}"</p>
+    {% elif tag_search %}
+        <p>No communities found with topic "{{ tag_search }}"</p>
+    {% endif %}
+</div>
+
+<script>
+    const nameSearchForm = document.getElementById('name-search-form');
+    const tagSearchForm = document.getElementById('tag-search-form');
+    
+    document.getElementById('name-search-tab').addEventListener('click', function() {
+        nameSearchForm.classList.remove('hidden');
+        tagSearchForm.classList.add('hidden');
+        this.classList.add('border-b-2', 'border-indigo-600', 'text-indigo-600');
+        document.getElementById('tag-search-tab').classList.remove('border-b-2', 'border-indigo-600', 'text-indigo-600');
+        tagSearchForm.querySelector('input').removeAttribute('required');
+        nameSearchForm.querySelector('input').setAttribute('required', '');
+    });
+
+    document.getElementById('tag-search-tab').addEventListener('click', function() {
+        tagSearchForm.classList.remove('hidden');
+        nameSearchForm.classList.add('hidden');
+        this.classList.add('border-b-2', 'border-indigo-600', 'text-indigo-600');
+        document.getElementById('name-search-tab').classList.remove('border-b-2', 'border-indigo-600', 'text-indigo-600');
+        nameSearchForm.querySelector('input').removeAttribute('required');
+        tagSearchForm.querySelector('input').setAttribute('required', '');
+    });
+    
+    if (nameSearchForm.classList.contains('hidden')) {
+        nameSearchForm.querySelector('input').removeAttribute('required');
+    } else {
+        tagSearchForm.querySelector('input').removeAttribute('required');
+    }
+</script>
+{% endblock %}
