@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, PasswordChangeForm
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
-from .models import Post, Community, Comment
+from .models import Post, Community, Comment, Event
 
 User = get_user_model()
 
@@ -60,3 +60,41 @@ class CommentForm(forms.ModelForm):
     class Meta:
         model = Comment
         fields = ['content']
+
+class EventForm(forms.ModelForm):
+    """
+    Form for creating and updating events.
+    """
+    required_materials = forms.CharField(
+        widget=forms.Textarea,
+        required=False,
+        help_text="Optional. List any materials participants should bring."
+    )
+    
+    class Meta:
+        model = Event
+        fields = ['title', 'description', 'date', 'start_time', 'end_time', 
+                    'location', 'is_virtual', 'virtual_link', 'max_participants',
+                    'required_materials']
+        
+    def clean(self):
+        cleaned_data = super().clean()
+        start_time = cleaned_data.get('start_time')
+        end_time = cleaned_data.get('end_time')
+        is_virtual = cleaned_data.get('is_virtual')
+        virtual_link = cleaned_data.get('virtual_link')
+        location = cleaned_data.get('location')
+        
+        # Validate that end time is after start time
+        if start_time and end_time and start_time >= end_time:
+            self.add_error('end_time', 'End time must be after start time')
+        
+        # Validate that virtual events have a link
+        if is_virtual and not virtual_link:
+            self.add_error('virtual_link', 'Virtual events must have a meeting link')
+        
+        # Validate that non-virtual events have a location
+        if not is_virtual and not location:
+            self.add_error('location', 'In-person events must have a location')
+            
+        return cleaned_data

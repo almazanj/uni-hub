@@ -230,6 +230,8 @@ class Event(models.Model):
     organizer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='organized_events')
     participants = models.ManyToManyField(User, related_name='events', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    max_participants = models.PositiveIntegerField(null=True, blank=True)
+    required_materials = models.TextField(blank=True, null=True)
     
     def __str__(self):
         return self.title
@@ -237,6 +239,12 @@ class Event(models.Model):
     @property
     def is_upcoming(self):
         return self.date >= timezone.now().date()
+        
+    @property
+    def is_full(self):
+        if self.max_participants:
+            return self.participants.count() >= self.max_participants
+        return False
 
 class Notification(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')

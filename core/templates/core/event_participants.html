@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Participants - {{ event.title }} - Uni Hub{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-3xl">
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div class="mb-4">
+            <a href="{% url 'core:event_detail' community.slug event.id %}" 
+                class="text-indigo-600 hover:text-indigo-800">
+                &larr; Back to Event
+            </a>
+        </div>
+        
+        <h1 class="text-2xl font-bold text-gray-900 mb-4">{{ event.title }} - Participants</h1>
+        {% with participant_count=participants|length %}
+        <p class="text-gray-600 mb-6">
+            This event has {{ participant_count }} registered participant{% if participant_count != 1 %}s{% endif %}
+            {% if event.max_participants %}
+                (maximum: {{ event.max_participants }})
+            {% endif %}
+        </p>
+        {% endwith %}
+        
+        {% if participants %}
+            <ul class="space-y-3">
+                {% for participant in participants %}
+                    <li class="mb-1 p-3 bg-gray-50 border border-gray-200 rounded-md hover:bg-white">
+                        <a href="{% url 'core:view_profile' participant.id %}" class="flex items-center">
+                            <div class="mr-3">
+                                {% if participant.profile.profile_image %}
+                                    <img src="{{ participant.profile.profile_image.url }}" alt="{{ participant.get_full_name }}" class="w-12 h-12 rounded-full object-cover">
+                                {% else %}
+                                    <img src="{% static 'img/default_pfp.svg' %}" alt="Default profile icon" class="w-12 h-12 object-cover">
+                                {% endif %}
+                            </div>
+                            <div class="flex-grow">
+                                <div class="text-indigo-600 font-medium">{{ participant.first_name }} {{ participant.last_name|default:participant.username }}</div>
+                                <div class="text-gray-500 text-sm">{{ participant.email }}</div>
+                            </div>
+                            {% if is_leader and event.is_upcoming and participant != event.organizer %}
+                                <div>
+                                    <form method="post" action="{% url 'core:event_remove_participant' community.slug event.id participant.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="text-red-600 hover:text-red-800 text-sm">
+                                            Remove
+                                        </button>
+                                    </form>
+                                </div>
+                            {% endif %}
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <div class="text-center py-8">
+                <p class="text-gray-500">No participants have registered for this event yet.</p>
+            </div>
+        {% endif %}
+        
+        {% if is_leader and event.is_upcoming %}
+            <div class="mt-8 pt-4 border-t">
+                <h2 class="text-lg font-semibold mb-3">Add Participant</h2>
+                <form method="post" action="{% url 'core:event_add_participant' community.slug event.id %}">
+                    {% csrf_token %}
+                    <div class="flex">
+                        <select name="user_id" class="flex-grow px-4 py-2 border border-gray-300 rounded-l-md focus:ring-indigo-500 focus:border-indigo-500 border-r-[16px] border-r-transparent focus:border-r-[16px] focus:border-r-transparent" required>
+                            <option value="">Select a community member</option>
+                            {% for member in available_members %}
+                                <option value="{{ member.id }}">{{ member.get_full_name|default:member.username }} ({{ member.email }})</option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-r-md hover:bg-indigo-700">
+                            Add
+                        </button>
+                    </div>
+                </form>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

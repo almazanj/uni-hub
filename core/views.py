@@ -3,11 +3,11 @@ from django.contrib.auth import login, authenticate, logout, update_session_auth
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, View
-from django.urls import reverse_lazy
-from django.http import Http404, HttpResponseForbidden, JsonResponse
+from django.urls import reverse_lazy, reverse
+from django.http import Http404, HttpResponseForbidden, JsonResponse, HttpResponseRedirect, HttpResponse
 from django.utils.text import slugify
 from django.utils import timezone
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.template.loader import render_to_string
 import os
 
@@ -23,7 +23,7 @@ from .models import User, Profile, Community, Notification, Event, Post, Comment
 # Forms
 from .forms import (
     CustomUserCreationForm, CustomAuthenticationForm, CustomPasswordChangeForm,
-    PostForm, CommunityForm, CommentForm
+    PostForm, CommunityForm, CommentForm, EventForm
 )
 
 # DRF
@@ -33,7 +33,6 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from .serializers import UserSerializer
-from django.db.models import Q  
 
 # Create your views here.
 def learn_more(request):
@@ -299,7 +298,6 @@ def dashboard(request):
     
     user_communities = Community.objects.filter(members=request.user)
     
-    
     recommended_communities = Community.objects.exclude(
         members=request.user
     ).annotate(
@@ -311,8 +309,9 @@ def dashboard(request):
         user=request.user
     ).order_by('-created_at')[:5]
     
-    # Get upcoming events
+    # Get upcoming events for communities the user belongs to
     upcoming_events = Event.objects.filter(
+        community__in=user_communities,
         date__gte=timezone.now().date()
     ).order_by('date', 'start_time')[:5]
     
@@ -541,6 +540,365 @@ class CommunityMembersView(LoginRequiredMixin, DetailView):
         
         context['members'] = members
         return context
+
+# Event management views
+class CommunityEventsView(DetailView):
+    model = Community
+    template_name = 'core/event_list.html'
+    context_object_name = 'community'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        community = self.get_object()
+        filter_type = self.request.GET.get('filter')
+        
+        # Default for anonymous users
+        is_member = False
+        
+        # Check if user is authenticated and a member
+        if self.request.user.is_authenticated:
+            is_member = self.request.user in community.members.all()
+        
+        # Base query - get all events for this community
+        events_query = Event.objects.filter(community=community)
+        
+        # Apply filters based on request
+        if filter_type == 'upcoming':
+            events_query = events_query.filter(date__gte=timezone.now().date())
+        elif filter_type == 'past':
+            events_query = events_query.filter(date__lt=timezone.now().date())
+        elif filter_type == 'registered' and self.request.user.is_authenticated and is_member:
+            events_query = events_query.filter(participants=self.request.user)
+        
+        # Order upcoming events by date (ascending), and past events by date (descending)
+        if filter_type == 'past':
+            events_query = events_query.order_by('-date', '-start_time')
+        else:
+            events_query = events_query.order_by('date', 'start_time')
+        
+        context['events'] = events_query
+        context['filter'] = filter_type
+        context['is_member'] = is_member
+        return context
+
+class EventCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+    model = Event
+    form_class = EventForm
+    template_name = 'core/event_form.html'
+    
+    def setup(self, request, *args, **kwargs):
+        super().setup(request, *args, **kwargs)
+        self.community = get_object_or_404(Community, slug=self.kwargs['slug'])
+    
+    def test_func(self):
+        return self.request.user == self.community.leader
+    
+    def handle_no_permission(self):
+        messages.error(self.request, "Only the community leader can create events.")
+        return HttpResponseRedirect(reverse('core:community_events', args=[self.community.slug]))
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['community'] = self.community
+        return context
+    
+    def form_valid(self, form):
+        event = form.save(commit=False)
+        event.community = self.community
+        event.organizer = self.request.user
+        event.save()
+        messages.success(self.request, f"Event '{event.title}' has been created successfully!")
+        return HttpResponseRedirect(reverse('core:event_detail', args=[self.community.slug, event.id]))
+
+class EventDetailView(DetailView):
+    model = Event
+    template_name = 'core/event_detail.html'
+    context_object_name = 'event'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        event = self.get_object()
+        community = event.community
+        user = self.request.user
+        
+        context['community'] = community
+        
+        # Default values for non-authenticated users
+        context['is_member'] = False
+        context['is_registered'] = False
+        context['is_full'] = event.is_full
+        
+        if user.is_authenticated:
+            is_member = user in community.members.all()
+            is_registered = user in event.participants.all()
+            
+            context['is_member'] = is_member
+            context['is_registered'] = is_registered
+        
+        return context
+
+class EventUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = Event
+    form_class = EventForm
+    template_name = 'core/event_form.html'
+    
+    def test_func(self):
+        event = self.get_object()
+        return self.request.user == event.organizer or self.request.user == event.community.leader
+    
+    def handle_no_permission(self):
+        event = self.get_object()
+        messages.error(self.request, "You don't have permission to edit this event.")
+        return HttpResponseRedirect(reverse('core:event_detail', args=[event.community.slug, event.id]))
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        event = self.get_object()
+        context['community'] = event.community
+        context['event'] = event
+        return context
+    
+    def form_valid(self, form):
+        event = form.save()
+        messages.success(self.request, f"Event '{event.title}' has been updated successfully!")
+        return HttpResponseRedirect(reverse('core:event_detail', args=[event.community.slug, event.id]))
+
+class EventDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = Event
+    template_name = 'core/event_confirm_delete.html'
+    
+    def test_func(self):
+        event = self.get_object()
+        return self.request.user == event.organizer or self.request.user == event.community.leader
+    
+    def handle_no_permission(self):
+        event = self.get_object()
+        messages.error(self.request, "You don't have permission to delete this event.")
+        return HttpResponseRedirect(reverse('core:event_detail', args=[event.community.slug, event.id]))
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        event = self.get_object()
+        context['community'] = event.community
+        return context
+    
+    def get_success_url(self):
+        community = self.object.community
+        messages.success(self.request, f"Event '{self.object.title}' has been deleted.")
+        return reverse('core:community_events', args=[community.slug])
+
+class EventParticipantsView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
+    model = Event
+    template_name = 'core/event_participants.html'
+    context_object_name = 'event'
+    
+    def test_func(self):
+        event = self.get_object()
+        return self.request.user in event.community.members.all()
+    
+    def handle_no_permission(self):
+        event = self.get_object()
+        messages.error(self.request, "You must be a member of this community to view event participants.")
+        return HttpResponseRedirect(reverse('core:event_detail', args=[event.community.slug, event.id]))
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        event = self.get_object()
+        community = event.community
+        user = self.request.user
+        
+        # Get all participants
+        participants = event.participants.all().order_by('first_name', 'last_name')
+        
+        # Check if user is a leader (has management permissions)
+        is_leader = (user == event.organizer or user == event.community.leader)
+        context['is_leader'] = is_leader
+        
+        # Only provide available members list for leaders who can add participants
+        if is_leader:
+            available_members = community.members.exclude(id__in=event.participants.values_list('id', flat=True))
+            context['available_members'] = available_members
+        
+        context['community'] = community
+        context['participants'] = participants
+        
+        return context
+
+class EventRegisterView(LoginRequiredMixin, DetailView):
+    model = Event
+    
+    def post(self, request, *args, **kwargs):
+        event = self.get_object()
+        user = request.user
+        
+        # Check if user is a member of the community
+        if user not in event.community.members.all():
+            messages.error(request, "You must be a member of this community to register for events.")
+            return HttpResponseRedirect(reverse('core:event_detail', args=[event.community.slug, event.id]))
+        
+        # Check if already registered
+        if user in event.participants.all():
+            messages.info(request, "You are already registered for this event.")
+            return HttpResponseRedirect(reverse('core:event_detail', args=[event.community.slug, event.id]))
+        
+        # Check if event is in the past
+        if event.date < timezone.now().date():
+            messages.error(request, "Cannot register for past events.")
+            return HttpResponseRedirect(reverse('core:event_detail', args=[event.community.slug, event.id]))
+        
+        # Check if event is full
+        if event.is_full:
+            messages.error(request, "This event is already full.")
+            return HttpResponseRedirect(reverse('core:event_detail', args=[event.community.slug, event.id]))
+        
+        # Add the user to participants
+        event.participants.add(user)
+        
+        # Create notification for the user
+        Notification.objects.create(
+            user=user,
+            title="Event Registration Successful",
+            message=f"You are now registered for '{event.title}' on {event.date.strftime('%B %d, %Y')}.",
+            link=reverse('core:event_detail', args=[event.community.slug, event.id])
+        )
+        
+        # Add success message
+        messages.success(request, f"You have successfully registered for '{event.title}'.")
+        return HttpResponseRedirect(reverse('core:event_detail', args=[event.community.slug, event.id]))
+
+class EventUnregisterView(LoginRequiredMixin, DetailView):
+    model = Event
+    
+    def post(self, request, *args, **kwargs):
+        event = self.get_object()
+        user = request.user
+        
+        # Check if registered
+        if user not in event.participants.all():
+            messages.info(request, "You are not registered for this event.")
+            return HttpResponseRedirect(reverse('core:event_detail', args=[event.community.slug, event.id]))
+        
+        # Check if event is in the past
+        if event.date < timezone.now().date():
+            messages.error(request, "Cannot unregister from past events.")
+            return HttpResponseRedirect(reverse('core:event_detail', args=[event.community.slug, event.id]))
+        
+        # Remove the user from participants
+        event.participants.remove(user)
+        
+        # Create notification for the user
+        Notification.objects.create(
+            user=user,
+            title="Event Registration Cancelled",
+            message=f"You have cancelled your registration for '{event.title}' on {event.date.strftime('%B %d, %Y')}.",
+            link=reverse('core:event_detail', args=[event.community.slug, event.id])
+        )
+        
+        # Add success message
+        messages.success(request, f"You have successfully unregistered from '{event.title}'.")
+        return HttpResponseRedirect(reverse('core:event_detail', args=[event.community.slug, event.id]))
+
+class EventAddParticipantView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
+    model = Event
+    
+    def test_func(self):
+        event = self.get_object()
+        return self.request.user == event.organizer or self.request.user == event.community.leader
+    
+    def handle_no_permission(self):
+        event = self.get_object()
+        messages.error(self.request, "You don't have permission to add participants.")
+        return HttpResponseRedirect(reverse('core:event_detail', args=[event.community.slug, event.id]))
+    
+    def post(self, request, *args, **kwargs):
+        event = self.get_object()
+        community = event.community
+        
+        # Get the user to add
+        try:
+            user_id = request.POST.get('user_id')
+            user_to_add = User.objects.get(id=user_id)
+        except (ValueError, User.DoesNotExist):
+            messages.error(request, "Invalid user selected.")
+            return HttpResponseRedirect(reverse('core:event_participants', args=[community.slug, event.id]))
+        
+        # Check if user is a member of the community
+        if user_to_add not in community.members.all():
+            messages.error(request, "User must be a member of this community to be added to events.")
+            return HttpResponseRedirect(reverse('core:event_participants', args=[community.slug, event.id]))
+        
+        # Check if already registered
+        if user_to_add in event.participants.all():
+            messages.info(request, f"{user_to_add.get_full_name() or user_to_add.username} is already registered for this event.")
+            return HttpResponseRedirect(reverse('core:event_participants', args=[community.slug, event.id]))
+        
+        # Check if event is full
+        if event.is_full:
+            messages.error(request, "This event is already full.")
+            return HttpResponseRedirect(reverse('core:event_participants', args=[community.slug, event.id]))
+        
+        # Add the user to participants
+        event.participants.add(user_to_add)
+        
+        # Create notification for the added user
+        Notification.objects.create(
+            user=user_to_add,
+            title="Event Registration",
+            message=f"You have been registered for '{event.title}' on {event.date.strftime('%B %d, %Y')} by the event organizer.",
+            link=reverse('core:event_detail', args=[community.slug, event.id])
+        )
+        
+        # Add success message
+        messages.success(request, f"{user_to_add.get_full_name() or user_to_add.username} has been added to the event.")
+        return HttpResponseRedirect(reverse('core:event_participants', args=[community.slug, event.id]))
+
+class EventRemoveParticipantView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
+    model = Event
+    
+    def test_func(self):
+        event = self.get_object()
+        return self.request.user == event.organizer or self.request.user == event.community.leader
+    
+    def handle_no_permission(self):
+        event = self.get_object()
+        messages.error(self.request, "You don't have permission to remove participants.")
+        return HttpResponseRedirect(reverse('core:event_detail', args=[event.community.slug, event.id]))
+    
+    def post(self, request, *args, **kwargs):
+        event = self.get_object()
+        community = event.community
+        user_id = kwargs.get('user_id')
+        
+        try:
+            user_to_remove = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            messages.error(request, "User not found.")
+            return HttpResponseRedirect(reverse('core:event_participants', args=[community.slug, event.id]))
+        
+        # Check if organizer is trying to remove themselves
+        if user_to_remove == event.organizer:
+            messages.error(request, "Cannot remove event organizer from participants.")
+            return HttpResponseRedirect(reverse('core:event_participants', args=[community.slug, event.id]))
+        
+        # Check if user is registered
+        if user_to_remove not in event.participants.all():
+            messages.info(request, f"{user_to_remove.get_full_name() or user_to_remove.username} is not registered for this event.")
+            return HttpResponseRedirect(reverse('core:event_participants', args=[community.slug, event.id]))
+        
+        # Remove user from event
+        event.participants.remove(user_to_remove)
+        
+        # Create notification for the removed user
+        Notification.objects.create(
+            user=user_to_remove,
+            title="Event Registration Removed",
+            message=f"Your registration for '{event.title}' on {event.date.strftime('%B %d, %Y')} has been cancelled by the event organizer.",
+            link=reverse('core:event_detail', args=[community.slug, event.id])
+        )
+        
+        # Add success message
+        messages.success(request, f"{user_to_remove.get_full_name() or user_to_remove.username} has been removed from the event.")
+        return HttpResponseRedirect(reverse('core:event_participants', args=[community.slug, event.id]))
 
 # Post Views
 class PostDetailView(DetailView):
