@@ -152,13 +152,20 @@
 
             <div>
               <h6 class="font-semibold text-sm">Upcoming Events</h6>
-              <p class="text-gray-500 text-sm">No upcoming events.</p>
-
-              <div class="text-center mt-6">
-                <a href="#"
-                  class="inline-block bg-blue-600 text-white py-2 px-6 rounded font-medium hover:bg-blue-700 transition">Create
-                  an Event</a>
-              </div>
+              {% if upcoming_events %}
+                <div class="space-y-2 mt-2">
+                  {% for event in upcoming_events %}
+                    <a href="{% url 'core:event_detail' event.community.slug event.id %}" 
+                        class="block p-2 border border-gray-200 rounded hover:bg-gray-50">
+                      <div class="font-medium">{{ event.title }}</div>
+                      <div class="text-xs text-gray-500">{{ event.date|date:"D, M j" }} • {{ event.start_time|time:"g:i A" }}</div>
+                      <div class="text-xs text-indigo-600">{{ event.community.name }}</div>
+                    </a>
+                  {% endfor %}
+                </div>
+              {% else %}
+                <p class="text-gray-500 text-sm">No upcoming events.</p>
+              {% endif %}
             </div>
           </div>
         </div>

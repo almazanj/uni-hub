@@ -6,7 +6,10 @@ from .views import (
     JoinCommunityView, LeaveCommunityView, 
     PostDetailView, PostCreateView, PostUpdateView, PostDeleteView,
     CommentCreateView, ReplyCreateView, CommentUpdateView, CommentDeleteView,
-    TagPostsView, sort_comments
+    TagPostsView, sort_comments,
+    CommunityEventsView, EventCreateView, EventDetailView, EventUpdateView, EventDeleteView,
+    EventParticipantsView, EventRegisterView, EventUnregisterView, EventAddParticipantView,
+    EventRemoveParticipantView
 )
 
 # Create a router for viewsets
@@ -69,4 +72,16 @@ urlpatterns = [
     
     # Tag URLs
     path('tags/<str:tag_name>/', TagPostsView.as_view(), name='tag_posts'),
+
+    # Event URLs
+    path('communities/<slug:slug>/events/', CommunityEventsView.as_view(), name='community_events'),
+    path('communities/<slug:slug>/events/create/', EventCreateView.as_view(), name='event_create'),
+    path('communities/<slug:slug>/events/<int:pk>/', EventDetailView.as_view(), name='event_detail'),
+    path('communities/<slug:slug>/events/<int:pk>/update/', EventUpdateView.as_view(), name='event_update'),
+    path('communities/<slug:slug>/events/<int:pk>/delete/', EventDeleteView.as_view(), name='event_delete'),
+    path('communities/<slug:slug>/events/<int:pk>/participants/', EventParticipantsView.as_view(), name='event_participants'),
+    path('communities/<slug:slug>/events/<int:pk>/register/', EventRegisterView.as_view(), name='event_register'),
+    path('communities/<slug:slug>/events/<int:pk>/unregister/', EventUnregisterView.as_view(), name='event_unregister'),
+    path('communities/<slug:slug>/events/<int:pk>/participants/add/', EventAddParticipantView.as_view(), name='event_add_participant'),
+    path('communities/<slug:slug>/events/<int:pk>/participants/<int:user_id>/remove/', EventRemoveParticipantView.as_view(), name='event_remove_participant'),
 ]
