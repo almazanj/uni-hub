@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ profile_user.first_name }}'s Profile{% endblock %}
+
+{% block content %}
+<div class="container mx-auto max-w-3xl p-6">
+    <div class="bg-white shadow rounded-lg p-6">
+        <div class="flex flex-col md:flex-row items-center md:items-start">
+            <!-- Profile Image Section -->
+            <div class="mb-4 md:mb-0 md:mr-6">
+                <div class="h-32 w-32 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
+                    {% if profile.profile_image %}
+                        <img src="{{ profile.profile_image.url }}" alt="{{ profile_user.first_name }}'s profile picture" class="h-full w-full object-cover">
+                    {% else %}
+                        <!-- Default SVG profile icon -->
+                        <img src="{% static 'img/default_pfp.svg' %}" alt="Default profile icon" class="h-full w-full object-cover">
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Profile Information Section -->
+            <div class="flex-1">
+                <h2 class="text-2xl font-bold text-gray-900">{{ profile_user.first_name }} {{ profile_user.last_name }}</h2>
+                <p class="text-gray-500">{{ profile_user.email }}</p>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <h3 class="text-lg font-semibold">Bio</h3>
+            <p class="text-gray-700 mt-2">{{ profile.bio|default:"No bio provided." }}</p>
+        </div>
+
+        <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Program and Year -->
+            <div>
+                <h3 class="text-lg font-semibold border-b-4 border-red-400">Education</h3>
+                <div class="mt-2">
+                    {% if profile.program %}
+                        <p class="text-gray-700">
+                            <span class="font-medium">Program:</span> {{ profile.program }}
+                            {% if profile.year %}
+                                (Year {{ profile.year }})
+                            {% endif %}
+                        </p>
+                    {% else %}
+                        <p class="text-gray-700">No program information provided.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Location -->
+            <div>
+                <h3 class="text-lg font-semibold border-b-4 border-indigo-400">Location</h3>
+                <p class="text-gray-700 mt-2">
+                    {% if profile.location %}
+                        {{ profile.location }}
+                    {% else %}
+                        Not specified
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <h3 class="text-lg border-l-4 pl-2 border-green-400 font-semibold">Interests</h3>
+            <div class="mt-2">
+                {% if profile.interest_tags.all %}
+                    <div class="flex flex-wrap gap-2">
+                        {% for tag in profile.interest_tags.all %}
+                            <a href="{% url 'core:search_profiles' %}?tag={{ tag.name }}" 
+                               class="inline-block bg-indigo-100 text-indigo-800 text-sm px-3 py-1 rounded-full hover:bg-indigo-200">
+                                {{ tag.name }}
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-gray-700">No interests listed.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,16 +1,34 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Profile - {{ user.first_name }}{% endblock %}
 
 {% block content %}
 <div class="container mx-auto p-6 max-w-3xl">
     <div class="bg-white shadow-lg rounded-lg p-6">
-        <h2 class="text-2xl font-bold text-gray-900">{{ user.first_name }} {{ user.last_name }}</h2>
-        <p class="text-gray-500 mb-4">{{ user.email }}</p>
+        <div class="flex flex-col md:flex-row items-center md:items-start">
+            <!-- Profile Image Section -->
+            <div class="mb-4 md:mb-0 md:mr-6">
+                <div class="h-32 w-32 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
+                    {% if user.profile.profile_image %}
+                        <img src="{{ user.profile.profile_image.url }}" alt="{{ user.first_name }}'s profile picture" class="h-full w-full object-cover">
+                    {% else %}
+                        <!-- Default SVG profile icon -->
+                        <img src="{% static 'img/default_pfp.svg' %}" alt="Default profile icon" class="h-full w-full object-cover">
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Profile Information Section -->
+            <div class="flex-1">
+                <h2 class="text-2xl font-bold text-gray-900">{{ user.first_name }} {{ user.last_name }}</h2>
+                <p class="text-gray-500 mb-4">{{ user.email }}</p>
+            </div>
+        </div>
 
         <div class="mt-6">
             <h3 class="text-lg font-semibold text-gray-800">Bio</h3>
-            <p class="text-gray-600 mt-2">
+            <p class="text-gray-600 mt-2 break-words">
                 {% if user.profile.bio %}
                 {{ user.profile.bio }}
                 {% else %}
@@ -19,16 +37,78 @@
             </p>
         </div>
 
+        <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Program and Year -->
+            <div>
+                <h3 class="text-lg font-semibold text-gray-800 border-b-4 border-red-400">Education</h3>
+                <div class="mt-2">
+                    {% if user.profile.program %}
+                        <p class="text-gray-600">
+                            <span class="font-medium">Program:</span> {{ user.profile.program }}
+                            {% if user.profile.year %}
+                                (Year {{ user.profile.year }})
+                            {% endif %}
+                        </p>
+                    {% else %}
+                        <p class="text-gray-400 italic">No program information provided.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Location and Date of Birth -->
+            <div>
+                <h3 class="text-lg font-semibold border-b-4 border-indigo-400 text-gray-800">Personal Info</h3>
+                <div class="mt-2">
+                    <p class="text-gray-600 mb-1">
+                        <span class="font-medium">Date of Birth:</span> 
+                        {% if user.profile.dob %}
+                            {{ user.profile.dob|date:"F j, Y" }}
+                        {% else %}
+                            <span class="text-gray-400 italic">Not provided.</span>
+                        {% endif %}
+                    </p>
+                    <p class="text-gray-600">
+                        <span class="font-medium">Location:</span> 
+                        {% if user.profile.location %}
+                            {{ user.profile.location }}
+                        {% else %}
+                            <span class="text-gray-400 italic">Not provided.</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+
         <div class="mt-4">
-            <h3 class="text-lg font-semibold text-gray-800">Interests</h3>
-            <p class="text-gray-600 mt-2 mb-6">
-                {% if user.profile.interests %}
-                {{ user.profile.interests }}
+            <h3 class="text-lg font-semibold border-l-4 pl-2 border-green-400 text-gray-800">Interests</h3>
+            <div class="mt-2 mb-6">
+                {% if user.profile.interest_tags.all %}
+                    <div class="flex flex-wrap gap-2">
+                        {% for tag in user.profile.interest_tags.all %}
+                            <a href="{% url 'core:search_profiles' %}?tag={{ tag.name }}" 
+                                class="inline-block bg-indigo-100 text-indigo-800 text-sm px-3 py-1 rounded-full hover:bg-indigo-200">
+                                {{ tag.name }}
+                            </a>
+                        {% endfor %}
+                    </div>
                 {% else %}
-                <span class="text-gray-400 italic">No interests listed.</span>
+                    <span class="text-gray-400 italic">No interests listed.</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <h3 class="text-lg font-semibold text-gray-800">Privacy Setting</h3>
+            <p class="text-gray-600 mt-2">
+                {% if user.profile.privacy == 'public' %}
+                    <span class="text-green-600">Public – anyone can view your profile.</span>
+                {% elif user.profile.privacy == 'private' %}
+                    <span class="text-red-600">Private – only you can view your profile.</span>
+                {% else %}
+                    <span class="text-gray-400 italic">Privacy not set.</span>
                 {% endif %}
             </p>
-        </div>
+        </div>        
 
         <div class="mt-8 text-right border-t pt-4">
             <a href="{% url 'core:edit_profile' %}"

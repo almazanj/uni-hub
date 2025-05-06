@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Search Profiles{% endblock %}
+
+{% block content %}
+<div class="container mx-auto max-w-3xl p-6">
+    <h2 class="text-2xl font-bold mb-4 text-center">Search Profiles</h2>
+
+    <div class="mb-6">
+        <ul class="flex space-x-4 mb-4 border-b">
+            <li>
+                <button id="name-search-tab" class="py-2 px-4 font-medium {% if not tag_search %}border-b-2 border-indigo-600 text-indigo-600{% endif %}">
+                    Search by Name/Email
+                </button>
+            </li>
+            <li>
+                <button id="tag-search-tab" class="py-2 px-4 font-medium {% if tag_search %}border-b-2 border-indigo-600 text-indigo-600{% endif %}">
+                    Search by Interest
+                </button>
+            </li>
+        </ul>
+
+        <div id="name-search-form" class="{% if tag_search %}hidden{% endif %}">
+            <form method="GET" action="{% url 'core:search_profiles' %}" id="name-search">
+                <div class="flex items-center space-x-2">
+                    <input type="text" name="q" value="{{ query }}" placeholder="Search by name or email"
+                        class="flex-grow p-2 border rounded-md" required>
+                    <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">
+                        Search
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div id="tag-search-form" class="{% if not tag_search %}hidden{% endif %}">
+            <form method="GET" action="{% url 'core:search_profiles' %}" id="tag-search">
+                <div class="flex items-center space-x-2">
+                    <input type="text" name="tag" value="{{ tag_search }}" placeholder="Enter interest here"
+                        class="flex-grow p-2 border rounded-md" required>
+                    <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">
+                        Search
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if results %}
+        <h3 class="text-xl font-semibold mb-3">
+            {% if tag_search %}
+                Students interested in "{{ tag_search }}"
+            {% else %}
+                Search results for "{{ query }}"
+            {% endif %}
+        </h3>
+        <ul>
+            {% for user in results %}
+                <li class="mb-2 p-3 bg-white shadow border rounded-md hover:bg-gray-50">
+                    <a href="{% url 'core:view_profile' user.id %}" class="flex items-center">
+                        <div class="mr-3">
+                            {% if user.profile.profile_image %}
+                                <img src="{{ user.profile.profile_image.url }}" alt="{{ user.get_full_name }}" class="w-12 h-12 rounded-full object-cover">
+                            {% else %}
+                                <img src="{% static 'img/default_pfp.svg' %}" alt="Default profile icon" class="w-12 h-12 object-cover">
+                            {% endif %}
+                        </div>
+                        <div>
+                            <div class="text-indigo-600 font-medium">{{ user.first_name }} {{ user.last_name }}</div>
+                            <div class="text-gray-500 text-sm">{{ user.email }}</div>
+                        </div>
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+        <p class="text-gray-500 italic">Search results excludes your own profile</p>
+    {% elif query %}
+        <p>No users found matching "{{ query }}"</p>
+        <p class="text-gray-500 italic">Search results excludes your own profile</p>
+    {% elif tag_search %}
+        <p>No users found with interest in "{{ tag_search }}"</p>
+        <p class="text-gray-500 italic">Search results excludes your own profile</p>
+    {% endif %}
+</div>
+
+<script>
+    const nameSearchForm = document.getElementById('name-search-form');
+    const tagSearchForm = document.getElementById('tag-search-form');
+    
+    document.getElementById('name-search-tab').addEventListener('click', function() {
+        nameSearchForm.classList.remove('hidden');
+        tagSearchForm.classList.add('hidden');
+        this.classList.add('border-b-2', 'border-indigo-600', 'text-indigo-600');
+        document.getElementById('tag-search-tab').classList.remove('border-b-2', 'border-indigo-600', 'text-indigo-600');
+        tagSearchForm.querySelector('input').removeAttribute('required');
+        nameSearchForm.querySelector('input').setAttribute('required', '');
+    });
+
+    document.getElementById('tag-search-tab').addEventListener('click', function() {
+        tagSearchForm.classList.remove('hidden');
+        nameSearchForm.classList.add('hidden');
+        this.classList.add('border-b-2', 'border-indigo-600', 'text-indigo-600');
+        document.getElementById('name-search-tab').classList.remove('border-b-2', 'border-indigo-600', 'text-indigo-600');
+        nameSearchForm.querySelector('input').removeAttribute('required');
+        tagSearchForm.querySelector('input').setAttribute('required', '');
+    });
+    
+    if (nameSearchForm.classList.contains('hidden')) {
+        nameSearchForm.querySelector('input').removeAttribute('required');
+    } else {
+        tagSearchForm.querySelector('input').removeAttribute('required');
+    }
+</script>
+{% endblock %}

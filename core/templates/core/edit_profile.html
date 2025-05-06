@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Edit Profile{% endblock %}
 
@@ -7,17 +8,122 @@
     <div class="bg-white shadow-lg rounded-lg p-6">
         <h2 class="text-2xl font-bold text-gray-900 mb-4">Edit Profile</h2>
 
-        <form method="POST">
+        <!-- Current profile image display -->
+        <div class="mb-6 flex flex-col items-center">
+            <div class="h-40 w-40 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center mb-3">
+                {% if profile.profile_image %}
+                    <img src="{{ profile.profile_image.url }}" alt="Your profile picture" class="h-full w-full object-cover">
+                {% else %}
+                    <!-- Default SVG profile icon -->
+                    <img src="{% static 'img/default_pfp.svg' %}" alt="Default profile icon" class="h-full w-full object-cover">
+                {% endif %}
+            </div>
+        </div>
+
+        <form method="POST" enctype="multipart/form-data" id="profile-form">
             {% csrf_token %}
+            
+            <!-- Profile Image Upload -->
+            <div class="mb-4">
+                <label class="block text-gray-700 font-medium mb-2">Profile Picture</label>
+                <input type="file" name="profile_image" id="profile-upload" accept="image/*" class="w-full px-4 py-2 border rounded-md">
+                <p class="text-sm text-gray-500 mt-1">Upload a new image to change your profile picture</p>
+                {% if profile.profile_image %}
+                <div class="mt-2 flex items-center">
+                    <input type="checkbox" id="remove_image" name="remove_image" class="mr-2">
+                    <label for="remove_image" class="text-sm text-red-600">Remove current profile picture</label>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Image cropper container -->
+            <div id="cropper-container" class="mb-6 hidden">
+                <h3 class="text-lg font-semibold mb-2">Crop Your Profile Picture</h3>
+                <div class="relative border bg-gray-100 mb-4" style="width: 100%; height: 350px; overflow: hidden;">
+                    <div id="image-container" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                        <img id="uploaded-image" src="" alt="Uploaded image" style="display: block; position: absolute;">
+                    </div>
+                    <div id="crop-circle" class="absolute border-4 border-indigo-500 rounded-full cursor-move" 
+                         style="width: 150px; height: 150px; box-shadow: 0 0 0 1000px rgba(0, 0, 0, 0.5);">
+                        <div id="resize-handle" class="absolute bottom-0 right-0 w-6 h-6 bg-indigo-500 rounded-full border-2 border-white cursor-se-resize"
+                             style="transform: translate(30%, 30%);"></div>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <input type="range" id="resize-slider" min="50" max="300" value="150" class="mr-2">
+                        <span id="size-display" class="text-sm text-gray-600">150px</span>
+                    </div>
+                    <button type="button" id="confirm-crop" class="px-3 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700">Confirm Crop</button>
+                </div>
+                <!-- Hidden inputs to store crop data -->
+                <input type="hidden" name="crop_x" id="crop-x">
+                <input type="hidden" name="crop_y" id="crop-y">
+                <input type="hidden" name="crop_size" id="crop-size">
+                <input type="hidden" name="original_width" id="original-width">
+                <input type="hidden" name="original_height" id="original-height">
+            </div>
+
             <div class="mb-4">
                 <label class="block text-gray-700 font-medium">Bio</label>
                 <textarea name="bio" class="w-full px-4 py-2 border rounded-md">{{ profile.bio }}</textarea>
             </div>
 
             <div class="mb-4">
-                <label class="block text-gray-700 font-medium">Interests</label>
-                <input type="text" name="interests" value="{{ profile.interests }}" class="w-full px-4 py-2 border rounded-md">
+                <label for="location" class="block text-gray-700 font-medium mb-1">Location</label>
+                <input type="text" name="location" id="location" value="{{ profile.location|default:'' }}" 
+                        class="w-full px-4 py-2 border rounded-md">
+                <p class="text-sm text-gray-500 mt-1">City, state/province, country, etc.</p>
             </div>
+
+            <div class="mb-4">
+                <label for="dob" class="block text-gray-700 font-medium mb-1">Date of Birth</label>
+                <input type="date" name="dob" id="dob" value="{{ profile.dob|date:'Y-m-d' }}" 
+                        class="w-full px-4 py-2 border rounded-md">
+            </div>
+
+            <div class="mb-4">
+                <label for="program" class="block text-gray-700 font-medium mb-1">Program</label>
+                <input type="text" name="program" id="program" value="{{ profile.program|default:'' }}" 
+                        class="w-full px-4 py-2 border rounded-md">
+                <p class="text-sm text-gray-500 mt-1">E.g., Computer Science, Engineering, Economics</p>
+            </div>
+
+            <div class="mb-4">
+                <label for="year" class="block text-gray-700 font-medium mb-1">Year</label>
+                <input type="number" name="year" id="year" value="{{ profile.year|default:'' }}" min="1" max="10" 
+                        class="w-full px-4 py-2 border rounded-md">
+                <p class="text-sm text-gray-500 mt-1">Your current year of study</p>
+            </div>
+
+            <!-- Interest Tags -->
+            <div class="mb-4">
+                <label class="block text-gray-700 font-medium mb-2">Interests</label>
+                <div id="tags-container" class="flex flex-wrap gap-2 mb-2">
+                    {% for tag in profile.interest_tags.all %}
+                        <span class="tag-badge bg-indigo-100 text-indigo-800 px-2 py-1 rounded-full flex items-center">
+                            {{ tag.name }}
+                            <button type="button" class="remove-tag ml-1 text-indigo-600 hover:text-indigo-800">×</button>
+                            <input type="hidden" name="interest_tags" value="{{ tag.name }}">
+                        </span>
+                    {% endfor %}
+                    <div class="relative flex-grow">
+                        <input type="text" id="tag-input" class="w-full px-2 py-1 outline-none border rounded-md" 
+                                placeholder="Enter interest here">
+                    </div>
+                </div>
+                <p class="text-sm text-gray-500 mt-1" >
+                    Type an interest and press Enter or Space to add it. Click × to remove. <span id="tag-limit-text" class="hidden">Max 50 characters.</span>
+                </p>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 font-medium">Profile Privacy</label>
+                <select name="privacy" class="w-full px-4 py-2 border rounded-md">
+                    <option value="public" {% if profile.privacy == "public" %}selected{% endif %}>Public</option>
+                    <option value="private" {% if profile.privacy == "private" %}selected{% endif %}>Private</option>
+                </select>
+            </div>            
 
             <div class="text-right">
                 <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
@@ -27,4 +133,498 @@
         </form>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const fileInput = document.getElementById('profile-upload');
+        const cropperContainer = document.getElementById('cropper-container');
+        const imageContainer = document.getElementById('image-container');
+        const uploadedImage = document.getElementById('uploaded-image');
+        const cropCircle = document.getElementById('crop-circle');
+        const resizeHandle = document.getElementById('resize-handle');
+        const resizeSlider = document.getElementById('resize-slider');
+        const sizeDisplay = document.getElementById('size-display');
+        const confirmCropBtn = document.getElementById('confirm-crop');
+        const cropX = document.getElementById('crop-x');
+        const cropY = document.getElementById('crop-y');
+        const cropSize = document.getElementById('crop-size');
+        const originalWidth = document.getElementById('original-width');
+        const originalHeight = document.getElementById('original-height');
+        
+        let isDraggingCircle = false;
+        let isResizingCircle = false;
+        let circleX = 0;
+        let circleY = 0;
+        let initialMouseX = 0;
+        let initialMouseY = 0;
+        let circleSize = 150;
+        let imageActualWidth = 0;
+        let imageActualHeight = 0;
+        let imageScale = 1;
+        let imageOffsetX = 0;
+        let imageOffsetY = 0;
+        
+        // Initialize cropper when an image is selected
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            // Clear previous image data, if any
+            uploadedImage.src = '';
+            
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                // Create a new Image object to preload and get dimensions
+                const img = new Image();
+                img.onload = function() {
+                    // Set final image source after dimensions are known
+                    uploadedImage.src = img.src;
+                    
+                    // Store original dimensions
+                    originalWidth.value = img.naturalWidth;
+                    originalHeight.value = img.naturalHeight;
+                    imageActualWidth = img.naturalWidth;
+                    imageActualHeight = img.naturalHeight;
+                    
+                    // Reset variables
+                    circleSize = 150;
+                    resizeSlider.value = circleSize;
+                    sizeDisplay.textContent = circleSize + 'px';
+                    
+                    // Show container before calculating dimensions
+                    cropperContainer.classList.remove('hidden');
+                    
+                    // Need to wait for the browser to render before calculating dimensions
+                    setTimeout(() => {
+                        initializeImageAndCircle();
+                    }, 50);
+                };
+                
+                // Load the image data
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+        
+        function initializeImageAndCircle() {
+            // Calculate how to fit the image in the container
+            const containerWidth = imageContainer.offsetWidth;
+            const containerHeight = imageContainer.offsetHeight;
+            
+            // Calculate scaling to fit image in container while maintaining aspect ratio
+            const scaleX = containerWidth / imageActualWidth;
+            const scaleY = containerHeight / imageActualHeight;
+            imageScale = Math.min(scaleX, scaleY, 1); // Don't upscale larger than original
+            
+            const displayWidth = imageActualWidth * imageScale;
+            const displayHeight = imageActualHeight * imageScale;
+            
+            // Center the image
+            imageOffsetX = Math.max(0, (containerWidth - displayWidth) / 2);
+            imageOffsetY = Math.max(0, (containerHeight - displayHeight) / 2);
+            
+            // Apply size and position to image
+            uploadedImage.style.width = displayWidth + 'px';
+            uploadedImage.style.height = displayHeight + 'px';
+            uploadedImage.style.left = imageOffsetX + 'px';
+            uploadedImage.style.top = imageOffsetY + 'px';
+            
+            // Adjust crop circle size if needed
+            circleSize = Math.min(circleSize, displayWidth, displayHeight);
+            
+            // Position crop circle in the center initially
+            circleX = (containerWidth - circleSize) / 2;
+            circleY = (containerHeight - circleSize) / 2;
+            
+            // Ensure circle is within image boundaries
+            const imageRight = imageOffsetX + displayWidth;
+            const imageBottom = imageOffsetY + displayHeight;
+            
+            circleX = Math.max(imageOffsetX, Math.min(imageRight - circleSize, circleX));
+            circleY = Math.max(imageOffsetY, Math.min(imageBottom - circleSize, circleY));
+            
+            // Update slider max value to the smaller dimension of the displayed image
+            const maxCircleSize = Math.min(displayWidth, displayHeight);
+            resizeSlider.max = maxCircleSize;
+            resizeSlider.value = circleSize;
+            sizeDisplay.textContent = circleSize + 'px';
+            
+            // Update circle position and size visually
+            updateCirclePosition();
+            updateCircleSize();
+            
+            // Update crop values for backend
+            updateCropValues();
+            
+            // Log for debugging
+            console.log('Image initialized', {
+                container: { width: containerWidth, height: containerHeight },
+                image: { 
+                    naturalWidth: imageActualWidth,
+                    naturalHeight: imageActualHeight,
+                    displayWidth: displayWidth,
+                    displayHeight: displayHeight,
+                    scale: imageScale,
+                    offset: { x: imageOffsetX, y: imageOffsetY }
+                },
+                circle: { 
+                    x: circleX, 
+                    y: circleY, 
+                    size: circleSize 
+                }
+            });
+        }
+        
+        // Make crop circle draggable
+        cropCircle.addEventListener('mousedown', function(e) {
+            if (e.target === resizeHandle) return; // Don't start drag if clicking resize handle
+            e.preventDefault();
+            isDraggingCircle = true;
+            initialMouseX = e.clientX - circleX;
+            initialMouseY = e.clientY - circleY;
+        });
+        
+        // Make resize handle work
+        resizeHandle.addEventListener('mousedown', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            isResizingCircle = true;
+            initialMouseX = e.clientX;
+            initialMouseY = e.clientY;
+        });
+        
+        // Handle mouse movements for drag and resize
+        document.addEventListener('mousemove', function(e) {
+            if (isDraggingCircle) {
+                e.preventDefault();
+                
+                // Calculate new position
+                let newX = e.clientX - initialMouseX;
+                let newY = e.clientY - initialMouseY;
+                
+                // Get image boundaries
+                const imageLeft = parseFloat(uploadedImage.style.left);
+                const imageTop = parseFloat(uploadedImage.style.top);
+                const imageRight = imageLeft + parseFloat(uploadedImage.style.width);
+                const imageBottom = imageTop + parseFloat(uploadedImage.style.height);
+                
+                // Constrain to image boundaries
+                newX = Math.max(imageLeft, Math.min(imageRight - circleSize, newX));
+                newY = Math.max(imageTop, Math.min(imageBottom - circleSize, newY));
+                
+                // Update position
+                circleX = newX;
+                circleY = newY;
+                updateCirclePosition();
+                updateCropValues();
+            }
+            
+            if (isResizingCircle) {
+                e.preventDefault();
+                
+                // Calculate size change
+                const dx = e.clientX - initialMouseX;
+                const dy = e.clientY - initialMouseY;
+                const delta = Math.max(dx, dy);
+                
+                // Update circle size
+                let newSize = Math.max(50, circleSize + delta);
+                
+                // Constrain to image boundaries
+                const imageLeft = parseFloat(uploadedImage.style.left);
+                const imageTop = parseFloat(uploadedImage.style.top);
+                const imageRight = imageLeft + parseFloat(uploadedImage.style.width);
+                const imageBottom = imageTop + parseFloat(uploadedImage.style.height);
+                
+                // Calculate max size based on circle position
+                const maxWidth = imageRight - circleX;
+                const maxHeight = imageBottom - circleY;
+                newSize = Math.min(newSize, maxWidth, maxHeight);
+                
+                if (newSize !== circleSize) {
+                    circleSize = newSize;
+                    resizeSlider.value = newSize;
+                    sizeDisplay.textContent = Math.round(newSize) + 'px';
+                    updateCircleSize();
+                    updateCropValues();
+                    
+                    // Reset initial mouse position for smoother resizing
+                    initialMouseX = e.clientX;
+                    initialMouseY = e.clientY;
+                }
+            }
+        });
+        
+        // Slider for circle size
+        resizeSlider.addEventListener('input', function() {
+            const newSize = parseInt(this.value);
+            
+            // Constrain to image boundaries
+            const imageLeft = parseFloat(uploadedImage.style.left);
+            const imageTop = parseFloat(uploadedImage.style.top);
+            const imageRight = imageLeft + parseFloat(uploadedImage.style.width);
+            const imageBottom = imageTop + parseFloat(uploadedImage.style.height);
+            
+            // Ensure circle doesn't extend beyond image
+            if (circleX + newSize > imageRight) {
+                circleX = imageRight - newSize;
+            }
+            
+            if (circleY + newSize > imageBottom) {
+                circleY = imageBottom - newSize;
+            }
+            
+            // Update size
+            circleSize = newSize;
+            sizeDisplay.textContent = newSize + 'px';
+            updateCirclePosition(); // Update position in case we adjusted it
+            updateCircleSize();
+            updateCropValues();
+        });
+        
+        // Handle mouse up event
+        document.addEventListener('mouseup', function() {
+            isDraggingCircle = false;
+            isResizingCircle = false;
+        });
+        
+        // Update circle position
+        function updateCirclePosition() {
+            cropCircle.style.left = circleX + 'px';
+            cropCircle.style.top = circleY + 'px';
+        }
+        
+        // Update circle size
+        function updateCircleSize() {
+            cropCircle.style.width = circleSize + 'px';
+            cropCircle.style.height = circleSize + 'px';
+        }
+        
+        // Update hidden fields with crop data
+        function updateCropValues() {
+            // Convert from display coordinates to original image coordinates
+            const imageLeft = parseFloat(uploadedImage.style.left);
+            const imageTop = parseFloat(uploadedImage.style.top);
+            
+            // Calculate the center of the crop circle relative to the image
+            const circleCenterX = (circleX - imageLeft + circleSize / 2) / imageScale;
+            const circleCenterY = (circleY - imageTop + circleSize / 2) / imageScale;
+            const originalCircleSize = circleSize / imageScale;
+            
+            // Set the crop values
+            cropX.value = Math.round(circleCenterX);
+            cropY.value = Math.round(circleCenterY);
+            cropSize.value = Math.round(originalCircleSize);
+            
+            console.log('Crop updated:', {
+                x: cropX.value, 
+                y: cropY.value, 
+                size: cropSize.value,
+                imageScale: imageScale,
+                displaySize: circleSize,
+                circlePosition: { x: circleX, y: circleY },
+                imagePosition: { x: imageLeft, y: imageTop }
+            });
+        }
+        
+        // Confirm crop
+        confirmCropBtn.addEventListener('click', function() {
+            updateCropValues();
+            cropperContainer.classList.add('hidden');
+        });
+        
+        // Touch support for mobile devices
+        cropCircle.addEventListener('touchstart', function(e) {
+            if (e.target === resizeHandle) return;
+            e.preventDefault();
+            const touch = e.touches[0];
+            isDraggingCircle = true;
+            initialMouseX = touch.clientX - circleX;
+            initialMouseY = touch.clientY - circleY;
+        });
+        
+        resizeHandle.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const touch = e.touches[0];
+            isResizingCircle = true;
+            initialMouseX = touch.clientX;
+            initialMouseY = touch.clientY;
+        });
+        
+        document.addEventListener('touchmove', function(e) {
+            if (isDraggingCircle) {
+                e.preventDefault();
+                const touch = e.touches[0];
+                
+                // Calculate new position
+                let newX = touch.clientX - initialMouseX;
+                let newY = touch.clientY - initialMouseY;
+                
+                // Get image boundaries
+                const imageLeft = parseFloat(uploadedImage.style.left);
+                const imageTop = parseFloat(uploadedImage.style.top);
+                const imageRight = imageLeft + parseFloat(uploadedImage.style.width);
+                const imageBottom = imageTop + parseFloat(uploadedImage.style.height);
+                
+                // Constrain to image boundaries
+                newX = Math.max(imageLeft, Math.min(imageRight - circleSize, newX));
+                newY = Math.max(imageTop, Math.min(imageBottom - circleSize, newY));
+                
+                // Update position
+                circleX = newX;
+                circleY = newY;
+                updateCirclePosition();
+                updateCropValues();
+            }
+            
+            if (isResizingCircle) {
+                e.preventDefault();
+                const touch = e.touches[0];
+                
+                // Calculate size change
+                const dx = touch.clientX - initialMouseX;
+                const dy = touch.clientY - initialMouseY;
+                const delta = Math.max(dx, dy);
+                
+                // Update circle size
+                let newSize = Math.max(50, circleSize + delta);
+                
+                // Constrain to image boundaries
+                const imageLeft = parseFloat(uploadedImage.style.left);
+                const imageTop = parseFloat(uploadedImage.style.top);
+                const imageRight = imageLeft + parseFloat(uploadedImage.style.width);
+                const imageBottom = imageTop + parseFloat(uploadedImage.style.height);
+                
+                // Calculate max size based on circle position
+                const maxWidth = imageRight - circleX;
+                const maxHeight = imageBottom - circleY;
+                newSize = Math.min(newSize, maxWidth, maxHeight);
+                
+                if (newSize !== circleSize) {
+                    circleSize = newSize;
+                    resizeSlider.value = newSize;
+                    sizeDisplay.textContent = Math.round(newSize) + 'px';
+                    updateCircleSize();
+                    updateCropValues();
+                    
+                    // Reset initial position for smoother resizing
+                    initialMouseX = touch.clientX;
+                    initialMouseY = touch.clientY;
+                }
+            }
+        }, { passive: false });
+        
+        document.addEventListener('touchend', function() {
+            isDraggingCircle = false;
+            isResizingCircle = false;
+        });
+        
+        // Tags input functionality
+        const tagsContainer = document.getElementById('tags-container');
+        const tagInput = document.getElementById('tag-input');
+        const tagLimitText = document.getElementById('tag-limit-text');
+        const MAX_TAG_LENGTH = 50;
+        let isTagValid = true;
+        
+        // Create a set to track existing tags (case insensitive)
+        const existingTagsSet = new Set(
+            Array.from(tagsContainer.getElementsByClassName('tag-badge'))
+                .map(badge => badge.innerText.replace('×', '').trim().toLowerCase())
+        );
+
+        // Add input event listener to check character count in real-time
+        tagInput.addEventListener('input', function() {
+            const inputLength = this.value.trim().length;
+            
+            if (inputLength > MAX_TAG_LENGTH) {
+                // Tag is too long, show error styling
+                tagInput.classList.add('border-red-500', 'bg-red-50', 'text-red-900');
+                tagLimitText.classList.remove('hidden');
+                tagLimitText.classList.add('text-red-600', 'font-medium');
+                isTagValid = false;
+            } else {
+                // Tag is valid, remove error styling
+                tagInput.classList.remove('border-red-500', 'bg-red-50', 'text-red-900');
+                tagLimitText.classList.add('hidden');
+                isTagValid = true;
+            }
+        });
+
+        // Add event listener for the input field
+        tagInput.addEventListener('keydown', function(e) {
+            if ((e.key === 'Enter' || e.key === ' ') && this.value.trim()) {
+                // Only proceed if the tag is valid (less than or equal to MAX_TAG_LENGTH)
+                if (!isTagValid) {
+                    e.preventDefault();
+                    return;
+                }
+                
+                e.preventDefault();
+                let tagValue = this.value.trim();
+                
+                // Remove hashtags and spaces
+                tagValue = tagValue.replace(/#/g, '').replace(/\s+/g, '');
+                
+                // Don't allow empty tags
+                if (!tagValue) {
+                    this.value = '';
+                    return;
+                }
+                
+                // Check if tag already exists (case insensitive)
+                const normalizedTag = tagValue.toLowerCase();
+                
+                if (!existingTagsSet.has(normalizedTag)) {
+                    // Add to both the DOM and our tracking set
+                    addTag(tagValue);
+                    existingTagsSet.add(normalizedTag);
+                }
+                
+                this.value = '';
+                // Reset validation state after adding tag
+                tagInput.classList.remove('border-red-500', 'bg-red-50', 'text-red-900');
+                tagLimitText.classList.add('text-gray-500');
+                tagLimitText.classList.remove('text-red-600', 'font-medium');
+                isTagValid = true;
+            }
+        });
+        
+        // Function to add a new tag
+        function addTag(tagValue) {
+            const tagBadge = document.createElement('span');
+            tagBadge.className = 'tag-badge bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full flex items-center';
+            
+            // Create text node with the tag value in lowercase
+            const displayValue = tagValue.toLowerCase();
+            const tagText = document.createTextNode(displayValue);
+            tagBadge.appendChild(tagText);
+            
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'remove-tag ml-1 text-indigo-600 hover:text-indigo-800';
+            removeBtn.textContent = '×';
+            
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'interest_tags';
+            hiddenInput.value = tagValue;
+            
+            tagBadge.appendChild(removeBtn);
+            tagBadge.appendChild(hiddenInput);
+            
+            tagsContainer.insertBefore(tagBadge, tagInput.parentNode);
+        }
+
+        // Update the remove button handler to maintain the set
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('remove-tag')) {
+                const badge = e.target.closest('.tag-badge');
+                const tagText = badge.innerText.replace('×', '').trim().toLowerCase();
+                existingTagsSet.delete(tagText);
+                badge.remove();
+            }
+        });
+    });
+</script>
 {% endblock %}
