@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block title %}Notifications - Uni Hub{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-3xl">
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <h1 class="text-2xl font-bold text-gray-900 mb-4">Notifications</h1>
+        
+        {% if notifications %}
+            <div class="flex justify-between items-center mb-4">
+                <span class="text-gray-600">{{ notifications.count }} notifications</span>
+                <form method="post" action="{% url 'core:mark_all_read' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="text-sm text-indigo-600 hover:text-indigo-800">
+                        Mark all as read
+                    </button>
+                </form>
+            </div>
+            
+            <div class="space-y-3">
+                {% for notification in notifications %}
+                    <div class="p-4 {% if not notification.is_read %}bg-indigo-50 border-l-4 border-indigo-500{% else %}bg-gray-50{% endif %} rounded-md shadow-sm">
+                        <div class="flex justify-between items-start">
+                            <h3 class="font-semibold {% if not notification.is_read %}text-indigo-900{% else %}text-gray-700{% endif %}">
+                                {{ notification.title }}
+                            </h3>
+                            <span class="text-xs text-gray-500">{{ notification.created_at|date:"M d, g:i a" }}</span>
+                        </div>
+                        <p class="mt-1 text-gray-600">{{ notification.message }}</p>
+                        <div class="mt-2 flex justify-between items-center">
+                            {% if notification.link %}
+                                <a href="{{ notification.link }}" class="text-sm text-indigo-600 hover:text-indigo-800">
+                                    View details →
+                                </a>
+                            {% else %}
+                                <span></span>
+                            {% endif %}
+                            
+                            {% if not notification.is_read %}
+                                <form method="post" action="{% url 'core:mark_read' notification.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="text-xs text-gray-500 hover:text-gray-700">
+                                        Mark as read
+                                    </button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-8">
+                <div class="text-gray-400 mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                    </svg>
+                </div>
+                <p class="text-gray-600">You have no notifications yet.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
