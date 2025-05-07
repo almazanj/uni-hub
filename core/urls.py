@@ -27,10 +27,13 @@ web_patterns = [
     path("learn-more/", views.learn_more, name="learn_more"),
     path('terms-of-service/', views.terms_of_service, name='terms_of_service'),
     path('privacy-policy/', views.privacy_policy, name='privacy_policy'),
+<<<<<<< HEAD
     path('search/', views.search_profiles, name='search_profiles'),
     path('profile/search/', views.search_profiles, name='search_profiles'),
     path('communities/search/', views.search_communities, name='search_communities'),
     path('user/<int:user_id>/', views.public_profile_view, name='view_profile'),
+=======
+>>>>>>> 5c1ae5a0852b783f704d49a4e82f0e139fce9f1a
 
 ]
 
