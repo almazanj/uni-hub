@@ -36,7 +36,7 @@
                       class="font-medium text-indigo-600 hover:text-indigo-800">
                       {{ community.name }}
                     </a>
-                    <p class="text-xs text-gray-500">{{ community.members.count }} members</p>
+                    <p class="text-xs text-gray-500">{{ community.members.count }} member{% if community.members.count != 1 %}s{% endif %}</p>
                   </div>
                   {% if community.leader == user %}
                   <div class="ml-2" title="You are the leader of this community">
