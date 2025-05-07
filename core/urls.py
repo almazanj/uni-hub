@@ -69,4 +69,5 @@ urlpatterns = [
     
     # Tag URLs
     path('tags/<str:tag_name>/', TagPostsView.as_view(), name='tag_posts'),
+
 ]

@@ -46,6 +46,25 @@ def home(request):
     return render(request, 'core/home.html')
 
 # Web views (HTML templates)
+
+@login_required
+def dashboard_view(request):
+    user = request.user
+
+    # Fetch user-specific notifications (latest 5)
+    notifications = Notification.objects.filter(user=user).order_by('-created_at')[:5]
+
+    # Example: Fetch user communities and recommendations
+    user_communities = Community.objects.filter(members=user)
+    recommended_communities = Community.objects.exclude(members=user)[:5]  # Simplified logic
+
+    context = {
+        'notifications': notifications,
+        'user_communities': user_communities,
+        'recommended_communities': recommended_communities,
+    }
+    return render(request, 'core/dashboard.html', context)
+
 def terms_of_service(request):
     return render(request, 'core/terms_of_service.html')
 
