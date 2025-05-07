@@ -875,11 +875,6 @@ class EventRemoveParticipantView(LoginRequiredMixin, UserPassesTestMixin, Detail
             messages.error(request, "User not found.")
             return HttpResponseRedirect(reverse('core:event_participants', args=[community.slug, event.id]))
         
-        # Check if organizer is trying to remove themselves
-        if user_to_remove == event.organizer:
-            messages.error(request, "Cannot remove event organizer from participants.")
-            return HttpResponseRedirect(reverse('core:event_participants', args=[community.slug, event.id]))
-        
         # Check if user is registered
         if user_to_remove not in event.participants.all():
             messages.info(request, f"{user_to_remove.get_full_name() or user_to_remove.username} is not registered for this event.")
