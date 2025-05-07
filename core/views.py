@@ -293,6 +293,37 @@ def change_password_view(request):
     
     return render(request, 'core/change_password.html', {'form': form})
 
+# @login_required
+# def dashboard(request):
+    
+#     user_communities = Community.objects.filter(members=request.user)
+    
+#     recommended_communities = Community.objects.exclude(
+#         members=request.user
+#     ).annotate(
+#         member_count=Count('members')
+#     ).order_by('-member_count')[:5]
+    
+#     # Get notifications for the user
+#     notifications = Notification.objects.filter(
+#         user=request.user
+#     ).order_by('-created_at')[:5]
+    
+#     # Get upcoming events for communities the user belongs to
+#     upcoming_events = Event.objects.filter(
+#         community__in=user_communities,
+#         date__gte=timezone.now().date()
+#     ).order_by('date', 'start_time')[:5]
+    
+#     context = {
+#         'user_communities': user_communities,
+#         'recommended_communities': recommended_communities,
+#         'notifications': notifications,
+#         'upcoming_events': upcoming_events,
+#     }
+    
+#     return render(request, 'core/dashboard.html', context)
+
 @login_required
 def dashboard(request):
     
@@ -307,7 +338,7 @@ def dashboard(request):
     # Get notifications for the user
     notifications = Notification.objects.filter(
         user=request.user
-    ).order_by('-created_at')[:5]
+    ).order_by('-created_at')
     
     # Get upcoming events for communities the user belongs to
     upcoming_events = Event.objects.filter(
@@ -467,6 +498,15 @@ class CommunityUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
                 # Add the tag to the community
                 community.topic_tags.add(tag)
         
+        # Create notifications for all members except the updater
+        for member in community.members.exclude(id=self.request.user.id):
+            Notification.objects.create(
+                user=member,
+                title="Community Updated",
+                message=f"The community '{community.name}' has been updated.",
+                link=reverse('core:community_detail', kwargs={'slug': community.slug})
+            )
+            
         messages.success(self.request, "Community updated successfully.")
         return super().form_valid(form)
     
@@ -660,9 +700,20 @@ class EventUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     
     def form_valid(self, form):
         event = form.save()
+        
+        for participant in event.participants.all():
+            if participant != self.request.user:  # Don't notify the updater
+                Notification.objects.create(
+                    user=participant,
+                    title="Event Updated",
+                    message=f"The event '{event.title}' has been updated.",
+                    link=reverse('core:event_detail', args=[event.community.slug, event.id])
+                )
+        
         messages.success(self.request, f"Event '{event.title}' has been updated successfully!")
         return HttpResponseRedirect(reverse('core:event_detail', args=[event.community.slug, event.id]))
-
+ 
+ 
 class EventDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Event
     template_name = 'core/event_confirm_delete.html'
@@ -681,6 +732,54 @@ class EventDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         event = self.get_object()
         context['community'] = event.community
         return context
+    
+    def post(self, request, *args, **kwargs):
+        event = self.get_object()
+        community = event.community
+        event_title = event.title
+        
+        # Store these before deleting the event
+        participants_ids = list(event.participants.values_list('id', flat=True))
+        participants = list(User.objects.filter(id__in=participants_ids))
+        other_members = list(community.members.exclude(id__in=participants_ids).exclude(id=request.user.id))
+        
+        # Create notifications for all participants
+        for participant in participants:
+            if participant.id != request.user.id:  # Don't notify the deleter
+                try:
+                    Notification.objects.create(
+                        user=participant,
+                        title="Event Cancelled",
+                        message=f"The event '{event_title}' in {community.name} has been cancelled.",
+                        link=reverse('core:community_events', args=[community.slug])
+                    )
+                except Exception as e:
+                    # Add logging here for debugging
+                    print(f"Error creating notification for participant {participant.id}: {e}")
+        
+        # Notify other community members
+        for member in other_members:
+            try:
+                Notification.objects.create(
+                    user=member,
+                    title="Event Cancelled",
+                    message=f"The event '{event_title}' in {community.name} has been cancelled.",
+                    link=reverse('core:community_events', args=[community.slug])
+                )
+            except Exception as e:
+                # Add logging here for debugging
+                print(f"Error creating notification for member {member.id}: {e}")
+        
+        messages.success(request, f"Event '{event_title}' has been deleted.")
+        success_url = reverse('core:community_events', args=[community.slug])
+        
+        # Now delete the event
+        self.object = event
+        event.delete()
+        
+        return HttpResponseRedirect(success_url)
+    
+    
     
     def get_success_url(self):
         community = self.object.community
@@ -1332,3 +1431,41 @@ class TagPostsView(ListView):
                 post.is_member = post.community in user_communities
         
         return context
+
+
+@login_required
+def notifications_view(request):
+    """Display all notifications for the current user."""
+    notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
+    return render(request, 'core/notifications.html', {'notifications': notifications})
+
+@login_required
+def mark_notification_read(request, notification_id):
+    """Mark a specific notification as read."""
+    if request.method == 'POST':
+        notification = get_object_or_404(Notification, id=notification_id, user=request.user)
+        notification.is_read = True
+        notification.save()
+        
+        # Get the next parameter if provided
+        next_url = request.GET.get('next', 'core:notifications')
+        
+        # If next URL is a relative URL (not starting with http), use it
+        if not next_url.startswith('http'):
+            return redirect(next_url)
+        return redirect('core:notifications')
+        
+    return redirect('core:notifications')
+
+@login_required
+def mark_all_notifications_read(request):
+    """Mark all notifications as read for the current user."""
+    if request.method == 'POST':
+        Notification.objects.filter(user=request.user).update(is_read=True)
+    return redirect('core:notifications')
+
+@login_required
+def notification_count(request):
+    """Return the count of unread notifications as JSON."""
+    count = Notification.objects.filter(user=request.user, is_read=False).count()
+    return JsonResponse({'count': count})
