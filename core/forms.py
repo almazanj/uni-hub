@@ -3,6 +3,7 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, Pass
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from .models import Post, Community, Comment, Event
+from django.utils import timezone
 
 User = get_user_model()
 
@@ -79,11 +80,17 @@ class EventForm(forms.ModelForm):
         
     def clean(self):
         cleaned_data = super().clean()
+        date = cleaned_data.get('date')
         start_time = cleaned_data.get('start_time')
         end_time = cleaned_data.get('end_time')
         is_virtual = cleaned_data.get('is_virtual')
         virtual_link = cleaned_data.get('virtual_link')
         location = cleaned_data.get('location')
+        today = timezone.now().date()
+        
+        # Validate that the event date is not in the past
+        if date and date < today:
+            self.add_error('date', 'Event date cannot be in the past')
         
         # Validate that end time is after start time
         if start_time and end_time and start_time >= end_time:
