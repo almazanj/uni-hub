@@ -1,5 +1,9 @@
 ## Project Overview
 
+https://github.com/almazanj/uni-hub/
+
+Uni Hub is an innovative online platform designed to enhance the university campus community experience. The platform tackles the challenges students face when transitioning to university life by enabling digital connections between peers with similar interests.
+
 ## Getting Started
 
 1. Clone the repository.
