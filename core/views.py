@@ -293,37 +293,6 @@ def change_password_view(request):
     
     return render(request, 'core/change_password.html', {'form': form})
 
-# @login_required
-# def dashboard(request):
-    
-#     user_communities = Community.objects.filter(members=request.user)
-    
-#     recommended_communities = Community.objects.exclude(
-#         members=request.user
-#     ).annotate(
-#         member_count=Count('members')
-#     ).order_by('-member_count')[:5]
-    
-#     # Get notifications for the user
-#     notifications = Notification.objects.filter(
-#         user=request.user
-#     ).order_by('-created_at')[:5]
-    
-#     # Get upcoming events for communities the user belongs to
-#     upcoming_events = Event.objects.filter(
-#         community__in=user_communities,
-#         date__gte=timezone.now().date()
-#     ).order_by('date', 'start_time')[:5]
-    
-#     context = {
-#         'user_communities': user_communities,
-#         'recommended_communities': recommended_communities,
-#         'notifications': notifications,
-#         'upcoming_events': upcoming_events,
-#     }
-    
-#     return render(request, 'core/dashboard.html', context)
-
 @login_required
 def dashboard(request):
     
@@ -338,7 +307,7 @@ def dashboard(request):
     # Get notifications for the user
     notifications = Notification.objects.filter(
         user=request.user
-    ).order_by('-created_at')
+    ).order_by('-created_at')[:5]
     
     # Get upcoming events for communities the user belongs to
     upcoming_events = Event.objects.filter(
@@ -1431,7 +1400,6 @@ class TagPostsView(ListView):
                 post.is_member = post.community in user_communities
         
         return context
-
 
 @login_required
 def notifications_view(request):
