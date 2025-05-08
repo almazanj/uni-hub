@@ -1,0 +1,1033 @@
+[
+{
+  "model": "core.user",
+  "pk": 1,
+  "fields": {
+    "password": "pbkdf2_sha256$720000$DEGu8fvNnMGeXVNuz60AJe$43M9yI+faiWld6QDT7vdQz1ds5UwWrcwPh2tykYJyXQ=",
+    "last_login": "2025-05-08T18:03:20.149Z",
+    "is_superuser": false,
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2025-05-08T15:16:26.353Z",
+    "email": "oliver.thompson@live.uwe.ac.uk",
+    "first_name": "Oliver",
+    "last_name": "Thompson",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "core.user",
+  "pk": 2,
+  "fields": {
+    "password": "pbkdf2_sha256$720000$huP6EZJsTOzBGEkePQpyN9$k+6VFHFR5H94/sIN5jVoktbo24Tcj8R+xZQqc7IjnEs=",
+    "last_login": "2025-05-08T17:57:13.512Z",
+    "is_superuser": false,
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2025-05-08T15:19:17.605Z",
+    "email": "amelia.patel@live.uwe.ac.uk",
+    "first_name": "Amelia",
+    "last_name": "Patel",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "core.user",
+  "pk": 3,
+  "fields": {
+    "password": "pbkdf2_sha256$720000$AaVFT35utgryIIm7US4dMM$x69Czsp2dExrjRoHWQMMFUPiyfOTgkxkwNjttY0bzbE=",
+    "last_login": "2025-05-08T17:14:45.186Z",
+    "is_superuser": false,
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2025-05-08T15:24:51.891Z",
+    "email": "liam.nguyen@live.uwe.ac.uk",
+    "first_name": "Liam",
+    "last_name": "Nguyen",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "core.user",
+  "pk": 4,
+  "fields": {
+    "password": "pbkdf2_sha256$720000$ooeC1gVj85UnW40HGZwzAt$mkHJT+47rgzjSN8aOXq7E2k0TKhJ0rAzx2bngt9uDtU=",
+    "last_login": "2025-05-08T17:51:17.945Z",
+    "is_superuser": false,
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2025-05-08T15:32:40.927Z",
+    "email": "emma.davis@live.uwe.ac.uk",
+    "first_name": "Emma",
+    "last_name": "Davis",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "core.user",
+  "pk": 5,
+  "fields": {
+    "password": "pbkdf2_sha256$720000$wczF64YkCp79ng4mbeU7VX$n1Ok4iYe5QUlXXsztWX4ab9c0vaAszgROKFZvQs08gQ=",
+    "last_login": "2025-05-08T17:01:22.396Z",
+    "is_superuser": false,
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2025-05-08T15:56:26.094Z",
+    "email": "james.wilson@live.uwe.ac.uk",
+    "first_name": "James",
+    "last_name": "Wilson",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "core.interesttag",
+  "pk": 1,
+  "fields": {
+    "name": "maths",
+    "created_at": "2025-05-08T15:18:36.543Z"
+  }
+},
+{
+  "model": "core.interesttag",
+  "pk": 2,
+  "fields": {
+    "name": "chess",
+    "created_at": "2025-05-08T15:18:36.555Z"
+  }
+},
+{
+  "model": "core.interesttag",
+  "pk": 3,
+  "fields": {
+    "name": "hiking",
+    "created_at": "2025-05-08T15:18:36.557Z"
+  }
+},
+{
+  "model": "core.interesttag",
+  "pk": 4,
+  "fields": {
+    "name": "sports",
+    "created_at": "2025-05-08T15:18:36.559Z"
+  }
+},
+{
+  "model": "core.interesttag",
+  "pk": 5,
+  "fields": {
+    "name": "cybersecurity",
+    "created_at": "2025-05-08T15:18:36.560Z"
+  }
+},
+{
+  "model": "core.interesttag",
+  "pk": 6,
+  "fields": {
+    "name": "photography",
+    "created_at": "2025-05-08T15:20:58.016Z"
+  }
+},
+{
+  "model": "core.interesttag",
+  "pk": 7,
+  "fields": {
+    "name": "robotics",
+    "created_at": "2025-05-08T15:20:58.018Z"
+  }
+},
+{
+  "model": "core.interesttag",
+  "pk": 8,
+  "fields": {
+    "name": "tennis",
+    "created_at": "2025-05-08T15:20:58.020Z"
+  }
+},
+{
+  "model": "core.interesttag",
+  "pk": 9,
+  "fields": {
+    "name": "sustainability",
+    "created_at": "2025-05-08T15:20:58.022Z"
+  }
+},
+{
+  "model": "core.interesttag",
+  "pk": 10,
+  "fields": {
+    "name": "games",
+    "created_at": "2025-05-08T15:26:23.715Z"
+  }
+},
+{
+  "model": "core.interesttag",
+  "pk": 11,
+  "fields": {
+    "name": "travel",
+    "created_at": "2025-05-08T15:26:23.717Z"
+  }
+},
+{
+  "model": "core.interesttag",
+  "pk": 12,
+  "fields": {
+    "name": "music",
+    "created_at": "2025-05-08T15:26:23.718Z"
+  }
+},
+{
+  "model": "core.interesttag",
+  "pk": 13,
+  "fields": {
+    "name": "ethics",
+    "created_at": "2025-05-08T15:26:40.689Z"
+  }
+},
+{
+  "model": "core.interesttag",
+  "pk": 14,
+  "fields": {
+    "name": "education",
+    "created_at": "2025-05-08T15:34:53.766Z"
+  }
+},
+{
+  "model": "core.interesttag",
+  "pk": 15,
+  "fields": {
+    "name": "mentoring",
+    "created_at": "2025-05-08T15:34:53.768Z"
+  }
+},
+{
+  "model": "core.interesttag",
+  "pk": 16,
+  "fields": {
+    "name": "programming",
+    "created_at": "2025-05-08T15:34:53.770Z"
+  }
+},
+{
+  "model": "core.interesttag",
+  "pk": 17,
+  "fields": {
+    "name": "hackathons",
+    "created_at": "2025-05-08T15:37:52.263Z"
+  }
+},
+{
+  "model": "core.interesttag",
+  "pk": 18,
+  "fields": {
+    "name": "technology",
+    "created_at": "2025-05-08T15:37:52.264Z"
+  }
+},
+{
+  "model": "core.interesttag",
+  "pk": 19,
+  "fields": {
+    "name": "coding",
+    "created_at": "2025-05-08T15:37:52.266Z"
+  }
+},
+{
+  "model": "core.interesttag",
+  "pk": 20,
+  "fields": {
+    "name": "study",
+    "created_at": "2025-05-08T15:38:11.256Z"
+  }
+},
+{
+  "model": "core.interesttag",
+  "pk": 21,
+  "fields": {
+    "name": "machine-learning",
+    "created_at": "2025-05-08T15:39:05.704Z"
+  }
+},
+{
+  "model": "core.interesttag",
+  "pk": 22,
+  "fields": {
+    "name": "cycling",
+    "created_at": "2025-05-08T15:59:24.120Z"
+  }
+},
+{
+  "model": "core.interesttag",
+  "pk": 23,
+  "fields": {
+    "name": "social-events",
+    "created_at": "2025-05-08T16:22:19.499Z"
+  }
+},
+{
+  "model": "core.interesttag",
+  "pk": 24,
+  "fields": {
+    "name": "esports",
+    "created_at": "2025-05-08T16:22:19.502Z"
+  }
+},
+{
+  "model": "core.interesttag",
+  "pk": 25,
+  "fields": {
+    "name": "tournaments",
+    "created_at": "2025-05-08T16:22:19.503Z"
+  }
+},
+{
+  "model": "core.interesttag",
+  "pk": 26,
+  "fields": {
+    "name": "engineering",
+    "created_at": "2025-05-08T16:38:11.938Z"
+  }
+},
+{
+  "model": "core.interesttag",
+  "pk": 27,
+  "fields": {
+    "name": "design",
+    "created_at": "2025-05-08T16:38:11.941Z"
+  }
+},
+{
+  "model": "core.interesttag",
+  "pk": 28,
+  "fields": {
+    "name": "networking",
+    "created_at": "2025-05-08T16:41:47.233Z"
+  }
+},
+{
+  "model": "core.interesttag",
+  "pk": 29,
+  "fields": {
+    "name": "workshops",
+    "created_at": "2025-05-08T16:41:47.236Z"
+  }
+},
+{
+  "model": "core.interesttag",
+  "pk": 30,
+  "fields": {
+    "name": "sustainable-technology",
+    "created_at": "2025-05-08T16:41:47.237Z"
+  }
+},
+{
+  "model": "core.interesttag",
+  "pk": 31,
+  "fields": {
+    "name": "innovation",
+    "created_at": "2025-05-08T16:41:47.240Z"
+  }
+},
+{
+  "model": "core.profile",
+  "pk": 1,
+  "fields": {
+    "user": 1,
+    "bio": "Captain of the university programming team, winner of the 2024 UWE Hackathon. Active member of the UWE Games Society and volunteer coding tutor at the campus learning center. Completed summer internship at Dyson's Bristol office.",
+    "privacy": "public",
+    "profile_image": "profile_images/pic3_cropped.jpg",
+    "location": "28 Whiteladies Road, Bristol, BS8 2LG",
+    "dob": "1999-04-12",
+    "program": "Computer Science",
+    "year": 3,
+    "interest_tags": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      10
+    ]
+  }
+},
+{
+  "model": "core.profile",
+  "pk": 2,
+  "fields": {
+    "user": 2,
+    "bio": "Student representative for the Engineering department. Founder of Women in STEM mentorship program at UWE. Received the Dean's Merit Scholarship for academic excellence. Member of the Robotics Club and Engineering Society.",
+    "privacy": "public",
+    "profile_image": "profile_images/pic5_cropped.jpg",
+    "location": "7 St Michael's Hill, Bristol, BS2 8DT",
+    "dob": "2002-09-23",
+    "program": "Engineering",
+    "year": 2,
+    "interest_tags": [
+      8,
+      9,
+      6,
+      26,
+      7,
+      27
+    ]
+  }
+},
+{
+  "model": "core.profile",
+  "pk": 3,
+  "fields": {
+    "user": 3,
+    "bio": "Lead developer for the UWE mobile app project. Published research paper on AI ethics with faculty member. Vice-president of the Game Development Society. Completed exchange semester at TU Berlin. Regular participant in university outreach events.",
+    "privacy": "public",
+    "profile_image": "profile_images/pic4_cropped.jpg",
+    "location": "53 North Street, Bristol, BS3 1EN",
+    "dob": "1998-06-17",
+    "program": "Computer Science",
+    "year": 3,
+    "interest_tags": [
+      2,
+      13,
+      10,
+      11,
+      12
+    ]
+  }
+},
+{
+  "model": "core.profile",
+  "pk": 4,
+  "fields": {
+    "user": 4,
+    "bio": "President of the UWE Tech Society and organizer of monthly tech workshops. Recipient of the UWE Leadership Excellence Award 2024. Completed internship at Oracle UK. Peer mentor for first-year computer science students and student ambassador for the Faculty of Environment and Technology.",
+    "privacy": "public",
+    "profile_image": "profile_images/pic_cropped.jpg",
+    "location": "19 Park Street, Bristol, BS1 5NH",
+    "dob": "1999-08-05",
+    "program": "Computer Science",
+    "year": 3,
+    "interest_tags": [
+      15,
+      18,
+      16,
+      14,
+      12
+    ]
+  }
+},
+{
+  "model": "core.profile",
+  "pk": 5,
+  "fields": {
+    "user": 5,
+    "bio": "Active member of the Engineering Society and regular participant in department workshops. Awarded second place in the Bristol Engineering Innovation Competition. Working on a sustainable energy project with faculty supervision. Volunteer STEM ambassador for local schools.",
+    "privacy": "private",
+    "profile_image": "profile_images/pic2_cropped.jpg",
+    "location": "82 Cotham Hill, Bristol, BS6 6JZ",
+    "dob": "2001-03-27",
+    "program": "Engineering",
+    "year": 2,
+    "interest_tags": [
+      9,
+      1,
+      26,
+      18,
+      4,
+      22
+    ]
+  }
+},
+{
+  "model": "core.community",
+  "pk": 1,
+  "fields": {
+    "name": "UWE Tech Society",
+    "description": "Dive into the digital frontier with UWE Tech Society! We're the hub for tech enthusiasts, coders, developers, and digital innovators across all disciplines. Our weekly coding sessions, tech talks, and hackathons provide the perfect environment to sharpen your skills and explore cutting-edge technologies from AI and machine learning to web development and cybersecurity.\r\n\r\nWe pride ourselves on our inclusive approach – whether you're writing your first line of code or developing complex systems, you'll find a welcoming community here. With strong links to Bristol's thriving tech scene, we offer unparalleled networking opportunities with startups and established tech companies.",
+    "slug": "uwe-tech-society",
+    "created_at": "2025-05-08T15:37:03.103Z",
+    "created_by": 4,
+    "leader": 4,
+    "members": [
+      4,
+      5
+    ],
+    "topic_tags": [
+      5,
+      7,
+      17,
+      18,
+      19,
+      20,
+      21
+    ]
+  }
+},
+{
+  "model": "core.community",
+  "pk": 2,
+  "fields": {
+    "name": "UWE Games Society",
+    "description": "Welcome to the UWE Games Society – Bristol's premier gaming community! We're passionate about all things gaming, from competitive eSports tournaments to casual board game nights and games development.\r\n\r\nOur weekly sessions in the Students' Union offer a vibrant space to connect with fellow gamers, discover new titles, and level up your skills. With regular events including our famous 24-hour charity gaming marathons, industry guest speakers, and inter-university competitions, there's something for every type of gamer.",
+    "slug": "uwe-games-society",
+    "created_at": "2025-05-08T16:22:19.496Z",
+    "created_by": 1,
+    "leader": 1,
+    "members": [
+      1,
+      3
+    ],
+    "topic_tags": [
+      24,
+      23,
+      2,
+      25,
+      19,
+      10
+    ]
+  }
+},
+{
+  "model": "core.community",
+  "pk": 3,
+  "fields": {
+    "name": "Engineering Society",
+    "description": "The Engineering Society at UWE Bristol is where innovation meets practical application! We're a dynamic community of future engineers passionate about turning creative solutions into reality.\r\n\r\nFrom hands-on workshops and industry site visits to collaborative design challenges and networking events with top engineering firms, we provide endless opportunities to enhance your technical skills beyond the classroom.",
+    "slug": "engineering-society",
+    "created_at": "2025-05-08T16:41:47.222Z",
+    "created_by": 2,
+    "leader": 2,
+    "members": [
+      2,
+      5
+    ],
+    "topic_tags": [
+      26,
+      27,
+      28,
+      29,
+      30,
+      31
+    ]
+  }
+},
+{
+  "model": "core.tag",
+  "pk": 1,
+  "fields": {
+    "name": "data-science"
+  }
+},
+{
+  "model": "core.tag",
+  "pk": 2,
+  "fields": {
+    "name": "study-group"
+  }
+},
+{
+  "model": "core.tag",
+  "pk": 3,
+  "fields": {
+    "name": "python"
+  }
+},
+{
+  "model": "core.tag",
+  "pk": 4,
+  "fields": {
+    "name": "coding"
+  }
+},
+{
+  "model": "core.tag",
+  "pk": 5,
+  "fields": {
+    "name": "announcement"
+  }
+},
+{
+  "model": "core.tag",
+  "pk": 6,
+  "fields": {
+    "name": "study-trip"
+  }
+},
+{
+  "model": "core.tag",
+  "pk": 7,
+  "fields": {
+    "name": "event"
+  }
+},
+{
+  "model": "core.tag",
+  "pk": 8,
+  "fields": {
+    "name": "games"
+  }
+},
+{
+  "model": "core.tag",
+  "pk": 9,
+  "fields": {
+    "name": "games-development"
+  }
+},
+{
+  "model": "core.tag",
+  "pk": 10,
+  "fields": {
+    "name": "competition"
+  }
+},
+{
+  "model": "core.tag",
+  "pk": 11,
+  "fields": {
+    "name": "masterclass"
+  }
+},
+{
+  "model": "core.tag",
+  "pk": 12,
+  "fields": {
+    "name": "trends"
+  }
+},
+{
+  "model": "core.tag",
+  "pk": 13,
+  "fields": {
+    "name": "discussion"
+  }
+},
+{
+  "model": "core.tag",
+  "pk": 14,
+  "fields": {
+    "name": "help"
+  }
+},
+{
+  "model": "core.post",
+  "pk": 1,
+  "fields": {
+    "title": "Python Programming Study Group Formation - All Levels Welcome!",
+    "content": "Hi everyone!\r\n\r\nI'm organising a Python programming study group that will meet weekly in the Q Block computer lab. Whether you're just starting out or looking to advance your skills with frameworks like Django or data science libraries, this group will be a supportive space to learn together.\r\n\r\n#python #study-group #coding #data-science",
+    "author": 4,
+    "community": 1,
+    "visibility": "public",
+    "created_at": "2025-05-08T15:41:55.276Z",
+    "updated_at": "2025-05-08T15:52:32.120Z",
+    "tags": [
+      1,
+      2,
+      3,
+      4
+    ]
+  }
+},
+{
+  "model": "core.post",
+  "pk": 2,
+  "fields": {
+    "title": "EXCLUSIVE: Tech Society Trip to CERN - Limited Spots Available!",
+    "content": "Exciting news, Tech Society members!\r\n\r\nWe've secured an incredible opportunity for a visit to CERN, the European Organization for Nuclear Research in Geneva this May! This is your chance to see the world's largest particle physics laboratory, home to the famous Large Hadron Collider and birthplace of the World Wide Web.\r\nhttps://imgur.com/lVRVVOq\r\n#event #announcement #study-trip",
+    "author": 4,
+    "community": 1,
+    "visibility": "members",
+    "created_at": "2025-05-08T15:44:33.294Z",
+    "updated_at": "2025-05-08T17:52:08.096Z",
+    "tags": [
+      5,
+      6,
+      7
+    ]
+  }
+},
+{
+  "model": "core.post",
+  "pk": 3,
+  "fields": {
+    "title": "Game Development Study Group - Unity & Unreal Engine Focus",
+    "content": "Hey everyone,\r\n\r\nWe should have a weekly game development study group focusing on Unity and Unreal Engine. Perfect for anyone interested in building their own games or learning more about game design principles and implementation.\r\n\r\nComment if you're interested, and let everyone know which engine you prefer to work with.\r\nhttps://i.imgur.com/9ttXBaN.gif\r\n#games #study-group #games-development",
+    "author": 3,
+    "community": 2,
+    "visibility": "public",
+    "created_at": "2025-05-08T16:30:39.071Z",
+    "updated_at": "2025-05-08T17:19:25.062Z",
+    "tags": [
+      2,
+      8,
+      9
+    ]
+  }
+},
+{
+  "model": "core.post",
+  "pk": 4,
+  "fields": {
+    "title": "Competitive Coding & Chess Tournament - Limited Spots",
+    "content": "I'm organizing an exclusive tournament combining competitive coding challenges and speed chess - testing both your programming and strategic thinking skills!\r\nhttps://imgur.com/KcUFx5u\r\nLet me know if you're interested by commenting down below.\r\n#competition #event #announcement",
+    "author": 1,
+    "community": 2,
+    "visibility": "members",
+    "created_at": "2025-05-08T16:33:23.702Z",
+    "updated_at": "2025-05-08T17:36:39.562Z",
+    "tags": [
+      5,
+      7,
+      10
+    ]
+  }
+},
+{
+  "model": "core.post",
+  "pk": 5,
+  "fields": {
+    "title": "Sustainable Engineering Masterclass with Industry Leaders",
+    "content": "I'm hosting an exclusive sustainable engineering masterclass featuring guest speakers from Dyson and Airbus sustainability teams.\r\n\r\nAll engineering disciplines welcome!\r\n\r\n#event #masterclass",
+    "author": 2,
+    "community": 3,
+    "visibility": "members",
+    "created_at": "2025-05-08T16:44:37.051Z",
+    "updated_at": "2025-05-08T17:00:31.499Z",
+    "tags": [
+      11,
+      7
+    ]
+  }
+},
+{
+  "model": "core.post",
+  "pk": 6,
+  "fields": {
+    "title": "Are Indie Games Outperforming AAA Titles in Innovation? Let's Discuss",
+    "content": "Been thinking about this a lot lately - seems like the most innovative gameplay mechanics and storytelling techniques are coming from indie studios while AAA titles are playing it safe with sequels and remakes.\r\n\r\n#discussion #trends",
+    "author": 3,
+    "community": 2,
+    "visibility": "public",
+    "created_at": "2025-05-08T17:21:57.706Z",
+    "updated_at": "2025-05-08T17:21:57.706Z",
+    "tags": [
+      12,
+      13
+    ]
+  }
+},
+{
+  "model": "core.post",
+  "pk": 7,
+  "fields": {
+    "title": "Optimizing Collision Detection in Unity for Large Open World",
+    "content": "I'm hitting a major performance bottleneck with collision detection in my open-world game project. Currently working with Unity and C#.\r\n\r\nMy current setup:\r\n- Using Unity's built-in collision system with rigidbodies\r\n- 500 interactive objects that need collision in a large terrain\r\nFrame rate tanks whenever player enters dense areas with many objects\r\n\r\nI've tried:\r\n- Object pooling for distant entities\r\n- LOD system for collision complexity\r\n- Using OnTriggerEnter instead of continuous collision for distant objects\r\n\r\nStill getting major performance hits though. Has anyone successfully implemented an efficient collision system for large environments?\r\n\r\n#coding #help #games",
+    "author": 3,
+    "community": 2,
+    "visibility": "public",
+    "created_at": "2025-05-08T17:23:59.777Z",
+    "updated_at": "2025-05-08T17:37:07.253Z",
+    "tags": [
+      4,
+      8,
+      14
+    ]
+  }
+},
+{
+  "model": "core.event",
+  "pk": 1,
+  "fields": {
+    "title": "Competitive Coding & Chess Tournament",
+    "description": "A unique tournament testing both technical and strategic thinking skills! Participants will compete in alternating rounds of timed coding challenges and speed chess matches.",
+    "date": "2025-05-16",
+    "start_time": "10:00:00",
+    "end_time": "12:00:00",
+    "location": "Room 2Q30, Frenchay Campus",
+    "is_virtual": false,
+    "virtual_link": null,
+    "community": 2,
+    "organizer": 1,
+    "created_at": "2025-05-08T17:42:06.736Z",
+    "max_participants": 10,
+    "required_materials": "",
+    "participants": [
+      3
+    ]
+  }
+},
+{
+  "model": "core.event",
+  "pk": 2,
+  "fields": {
+    "title": "Sustainable Engineering Masterclass",
+    "description": "A masterclass bringing together top Engineering students with senior sustainability engineers from Dyson and Airbus.",
+    "date": "2025-05-20",
+    "start_time": "10:00:00",
+    "end_time": "11:00:00",
+    "location": "2Q31, Frenchay Campus",
+    "is_virtual": false,
+    "virtual_link": null,
+    "community": 3,
+    "organizer": 2,
+    "created_at": "2025-05-08T17:46:26.360Z",
+    "max_participants": 30,
+    "required_materials": "",
+    "participants": [
+      2
+    ]
+  }
+},
+{
+  "model": "core.event",
+  "pk": 3,
+  "fields": {
+    "title": "Trip to CERN",
+    "description": "Experience an intensive one-day visit to the world's largest particle physics laboratory! This fast-paced trip offers UWE students a rare glimpse into the home of the Large Hadron Collider and birthplace of the World Wide Web.",
+    "date": "2025-05-23",
+    "start_time": "06:00:00",
+    "end_time": "19:00:00",
+    "location": "Geneva, Switzerland",
+    "is_virtual": false,
+    "virtual_link": null,
+    "community": 1,
+    "organizer": 4,
+    "created_at": "2025-05-08T17:54:30.846Z",
+    "max_participants": 20,
+    "required_materials": "Valid passport, comfortable walking shoes, spending money for meals not included and souvenirs",
+    "participants": [
+      4
+    ]
+  }
+},
+{
+  "model": "core.notification",
+  "pk": 1,
+  "fields": {
+    "user": 3,
+    "title": "Community Updated",
+    "message": "The community 'UWE Games Society' has been updated.",
+    "link": "/communities/uwe-games-society/",
+    "is_read": false,
+    "created_at": "2025-05-08T16:28:07.454Z"
+  }
+},
+{
+  "model": "core.notification",
+  "pk": 2,
+  "fields": {
+    "user": 3,
+    "title": "Community Updated",
+    "message": "The community 'UWE Games Society' has been updated.",
+    "link": "/communities/uwe-games-society/",
+    "is_read": false,
+    "created_at": "2025-05-08T16:28:16.919Z"
+  }
+},
+{
+  "model": "core.notification",
+  "pk": 3,
+  "fields": {
+    "user": 3,
+    "title": "Community Updated",
+    "message": "The community 'UWE Games Society' has been updated.",
+    "link": "/communities/uwe-games-society/",
+    "is_read": false,
+    "created_at": "2025-05-08T16:47:45.031Z"
+  }
+},
+{
+  "model": "core.notification",
+  "pk": 4,
+  "fields": {
+    "user": 3,
+    "title": "Event Registration Successful",
+    "message": "You are now registered for 'Competitive Coding & Chess Tournament' on May 16, 2025.",
+    "link": "/communities/uwe-games-society/events/1/",
+    "is_read": false,
+    "created_at": "2025-05-08T17:42:20.950Z"
+  }
+},
+{
+  "model": "core.notification",
+  "pk": 5,
+  "fields": {
+    "user": 4,
+    "title": "Event Registration Successful",
+    "message": "You are now registered for 'Trip to CERN' on May 23, 2025.",
+    "link": "/communities/uwe-tech-society/events/3/",
+    "is_read": false,
+    "created_at": "2025-05-08T17:56:22.583Z"
+  }
+},
+{
+  "model": "core.notification",
+  "pk": 6,
+  "fields": {
+    "user": 2,
+    "title": "Event Registration Successful",
+    "message": "You are now registered for 'Sustainable Engineering Masterclass' on May 20, 2025.",
+    "link": "/communities/engineering-society/events/2/",
+    "is_read": false,
+    "created_at": "2025-05-08T17:57:20.068Z"
+  }
+},
+{
+  "model": "core.notification",
+  "pk": 7,
+  "fields": {
+    "user": 3,
+    "title": "Community Updated",
+    "message": "The community 'UWE Games Society' has been updated.",
+    "link": "/communities/uwe-games-society/",
+    "is_read": false,
+    "created_at": "2025-05-08T18:03:27.820Z"
+  }
+},
+{
+  "model": "core.comment",
+  "pk": 1,
+  "fields": {
+    "post": 2,
+    "author": 5,
+    "content": "This sounds incredible! I've always wanted to visit CERN since learning about the LHC in my Engineering Physics module.",
+    "created_at": "2025-05-08T16:11:20.535Z",
+    "updated_at": "2025-05-08T16:11:20.535Z",
+    "parent": null
+  }
+},
+{
+  "model": "core.comment",
+  "pk": 2,
+  "fields": {
+    "post": 2,
+    "author": 4,
+    "content": "Thanks James. The workshop is designed for all technical backgrounds, feel free to invite any friends.",
+    "created_at": "2025-05-08T16:14:44.151Z",
+    "updated_at": "2025-05-08T16:14:52.832Z",
+    "parent": 1
+  }
+},
+{
+  "model": "core.comment",
+  "pk": 3,
+  "fields": {
+    "post": 1,
+    "author": 5,
+    "content": "I'd be interested in joining. Currently at an intermediate level with Python.",
+    "created_at": "2025-05-08T16:17:12.172Z",
+    "updated_at": "2025-05-08T16:17:12.172Z",
+    "parent": null
+  }
+},
+{
+  "model": "core.comment",
+  "pk": 4,
+  "fields": {
+    "post": 4,
+    "author": 3,
+    "content": "Hell yeah I'm in! This combo event is actually galaxy brain stuff.",
+    "created_at": "2025-05-08T17:06:26.352Z",
+    "updated_at": "2025-05-08T17:06:26.352Z",
+    "parent": null
+  }
+},
+{
+  "model": "core.comment",
+  "pk": 5,
+  "fields": {
+    "post": 4,
+    "author": 1,
+    "content": "Ayy thanks for the interest. We'll have standardized setups to keep it fair.",
+    "created_at": "2025-05-08T17:13:40.576Z",
+    "updated_at": "2025-05-08T17:13:40.576Z",
+    "parent": 4
+  }
+},
+{
+  "model": "core.comment",
+  "pk": 6,
+  "fields": {
+    "post": 7,
+    "author": 1,
+    "content": "Yep, been there - classic Unity problem. Your bottleneck is definitely from too many physics calculations happening simultaneously.",
+    "created_at": "2025-05-08T17:27:29.677Z",
+    "updated_at": "2025-05-08T17:27:29.677Z",
+    "parent": null
+  }
+},
+{
+  "model": "core.comment",
+  "pk": 7,
+  "fields": {
+    "post": 7,
+    "author": 3,
+    "content": "so it's definitely a physics calculation overload. I was hoping to avoid chunking the world but looks like there's no way around it.",
+    "created_at": "2025-05-08T17:29:09.291Z",
+    "updated_at": "2025-05-08T17:29:09.291Z",
+    "parent": 6
+  }
+},
+{
+  "model": "core.comment",
+  "pk": 8,
+  "fields": {
+    "post": 7,
+    "author": 1,
+    "content": "No problem! Chunking sounds tedious but it's actually not too bad to implement. Start with larger chunks and then optimize size later based on your performance metrics.",
+    "created_at": "2025-05-08T17:29:45.742Z",
+    "updated_at": "2025-05-08T17:29:45.742Z",
+    "parent": 7
+  }
+},
+{
+  "model": "core.comment",
+  "pk": 9,
+  "fields": {
+    "post": 7,
+    "author": 3,
+    "content": "You know any good profiling tools for Unity that could help me pinpoint exactly where the performance is tanking? Been using the built-in profiler but it's kinda overwhelming with all the data.",
+    "created_at": "2025-05-08T17:31:37.174Z",
+    "updated_at": "2025-05-08T17:31:37.174Z",
+    "parent": 8
+  }
+},
+{
+  "model": "core.comment",
+  "pk": 10,
+  "fields": {
+    "post": 7,
+    "author": 1,
+    "content": "The built-in profiler is actually decent once you know what to look for. Focus on the 'Physics.Processing' spikes in the CPU profiler - that's your collision calculation overhead.",
+    "created_at": "2025-05-08T17:32:27.106Z",
+    "updated_at": "2025-05-08T17:32:27.106Z",
+    "parent": 9
+  }
+},
+{
+  "model": "core.comment",
+  "pk": 11,
+  "fields": {
+    "post": 6,
+    "author": 1,
+    "content": "You're onto something here. The risk/reward balance is completely different - indie devs HAVE to innovate or they don't get noticed at all, while AAA studios are incentivized to play it safe to protect their $100M+ investments.",
+    "created_at": "2025-05-08T17:34:45.892Z",
+    "updated_at": "2025-05-08T17:34:45.892Z",
+    "parent": null
+  }
+},
+{
+  "model": "core.comment",
+  "pk": 12,
+  "fields": {
+    "post": 3,
+    "author": 1,
+    "content": "Been messing around with Unity for some side projects but never in a structured group setting. Would be awesome to share knowledge and maybe even collaborate on something.",
+    "created_at": "2025-05-08T17:39:36.863Z",
+    "updated_at": "2025-05-08T17:39:36.863Z",
+    "parent": null
+  }
+}
+]
