@@ -14,4 +14,10 @@ Uni Hub is an innovative online platform designed to enhance the university camp
     docker compose up -d
     ```
 
-3. Goto `http://127.0.0.1:8000/` in your browser and you should see the homepage.
+3. Load the initial data using:
+
+    ```bash
+    docker compose exec web python manage.py loaddata core/fixtures/initial_data.json
+    ```
+
+4. Goto `http://127.0.0.1:8000/` in your browser and you should see the homepage.
