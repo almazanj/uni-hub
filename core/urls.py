@@ -34,8 +34,11 @@ web_patterns = [
     path('profile/search/', views.search_profiles, name='search_profiles'),
     path('communities/search/', views.search_communities, name='search_communities'),
     path('user/<int:user_id>/', views.public_profile_view, name='view_profile'),
-
-]
+    path('notifications/', views.notifications_view, name='notifications'),
+    path('notifications/<int:notification_id>/mark-read/', views.mark_notification_read, name='mark_read'),
+    path('notifications/mark-all-read/', views.mark_all_notifications_read, name='mark_all_read'),
+    path('notifications/count/', views.notification_count, name='notification_count'),
+] # Function-based views
 
 urlpatterns = [
     *web_patterns,
@@ -84,11 +87,4 @@ urlpatterns = [
     path('communities/<slug:slug>/events/<int:pk>/unregister/', EventUnregisterView.as_view(), name='event_unregister'),
     path('communities/<slug:slug>/events/<int:pk>/participants/add/', EventAddParticipantView.as_view(), name='event_add_participant'),
     path('communities/<slug:slug>/events/<int:pk>/participants/<int:user_id>/remove/', EventRemoveParticipantView.as_view(), name='event_remove_participant'),
-
-    
-    # Notification URLs
-    path('notifications/', views.notifications_view, name='notifications'),
-    path('notifications/<int:notification_id>/mark-read/', views.mark_notification_read, name='mark_read'),
-    path('notifications/mark-all-read/', views.mark_all_notifications_read, name='mark_all_read'),
-    path('notifications/count/', views.notification_count, name='notification_count'),
 ]
